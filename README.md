@@ -41,6 +41,9 @@ routes:
   - url: The path to a Lovelace view.
   - icon: The default icon.
   - icon_selected: (Optional) The icon displayed when the view is active.
+ 
+![navbar-card-badge](https://github.com/user-attachments/assets/5f548ce3-82b5-422f-a084-715bc73846b0)
+
 
 #### Example Configuration
 ```yaml
