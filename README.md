@@ -1,12 +1,11 @@
+[![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
+[![Last commit](https://img.shields.io/github/last-commit/joseluis9595/lovelace-navbar-card)](#)
+![Downloads](https://img.shields.io/github/downloads/joseluis9595/lovelace-navbar-card/total)
 
 # Navbar Card
 ![navbar-card](https://github.com/user-attachments/assets/df2a9a5d-51ec-4786-8f54-36ece2aa6f9a)
 
 Navbar Card is a custom Lovelace card that simplifies navigation within your Home Assistant dashboard. This card provides a sleek, responsive navigation bar that appears at the bottom of the screen on mobile devices and on the side for desktop users.
-
-[![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
-[![Last commit](https://img.shields.io/github/last-commit/joseluis9595/lovelace-navbar-card)](#)
-![Downloads](https://img.shields.io/github/downloads/joseluis9595/lovelace-navbar-card/total)
 
 ## 🚀 Installation
 ### Via HACS (recommended)
