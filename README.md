@@ -14,6 +14,16 @@ Navbar Card is a custom Lovelace card that simplifies navigation within your Hom
 2. Search for "Navbar Card".
 3. Click Install!
 
+### Manual
+1. Download [navbar-card.js](https://github.com/joseluis9595/lovelace-navbar-card/releases/latest/download/navbar-card.js) from the latest release.
+2. Move this file to home assistant's `<config>/www` folder.
+3. In home assistant, go to `Settings > Dashboards`.
+4. On the top right corner, click `Resources`.
+5. Click `Add resource`.
+6. Fill URL with: `/local/navbar-card.js`.
+7. Select `JavaScript module` and `Create`.
+8. Go to your dashboard, refresh your page and add your new navbar-card!
+
 
 ---
 ## ⚙️ Configuration
