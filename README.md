@@ -5,7 +5,7 @@
 # Navbar Card
 ![navbar-card](https://github.com/user-attachments/assets/df2a9a5d-51ec-4786-8f54-36ece2aa6f9a)
 
-Navbar Card is a custom Lovelace card designed to simplify navigation within your Home Assistant dashboard. It provides a sleek, responsive navigation bar that displays as a full-width bar at the bottom on mobile devices. On desktop, it adapts into a flexible container that can be positioned on any side of the screen (top, bottom, left, or right) adjusting its orientation to fit seamlessly.
+Navbar Card is a custom Lovelace card designed to simplify navigation within your Home Assistant dashboard, heavily inspired by the great work of [Adaptive Mushroom](https://community.home-assistant.io/t/adaptive-mushroom/640308). It provides a sleek, responsive navigation bar that displays as a full-width bar at the bottom on mobile devices. On desktop, it adapts into a flexible container that can be positioned on any side of the screen (top, bottom, left, or right) adjusting its orientation to fit seamlessly.
 
 ## 🚀 Installation
 ### Via HACS (recommended)
