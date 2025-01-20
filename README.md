@@ -10,8 +10,10 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 ## 🚀 Installation
 ### Via HACS (recommended)
 1. Go to HACS in Home Assistant.
-2. Search for "Navbar Card".
-3. Click Install!
+2. On the top right, click "Custom repositories".
+3. Enter the repository URL: https://github.com/joseluis9595/lovelace-navbar-card.git
+4. Search for "Navbar Card".
+5. Click Install!
 
 ### Manual
 1. Download [navbar-card.js](https://github.com/joseluis9595/lovelace-navbar-card/releases/latest/download/navbar-card.js) from the latest release.
@@ -112,4 +114,35 @@ routes:
     badge:
       template: states['binary_sensor.docker_hub_update_available'].state === 'on'
       color: var(--primary-color)
+```
+
+---
+## 🖌️ Styling and Padding (Optional)
+
+If you’re using the Navbar Card, you might notice it could collide with other cards on your dashboard. A simple way to fix this is by adding some padding to your Home Assistant views. The easiest way to do that is by using [card-mod](https://github.com/thomasloven/lovelace-card-mod) with a [custom theme](https://www.home-assistant.io/integrations/frontend/#themes).
+
+Here’s an example of how you can tweak your theme to adjust the layout for both desktop and mobile:
+
+
+```yaml
+your_theme:
+  card-mod-root-yaml: |
+    .: |
+      /* Add padding to the left (or other sides, depending on your navbar position) for desktop screens */
+      @media (min-width: 768px) {
+        hui-sections-view {
+          padding-left: 100px !important;
+        }
+      }
+
+      /* Add bottom padding for mobile screens to prevent cards from overlapping with the navbar *
+      @media (max-width: 767px) {
+        hui-sections-view:after {
+          content: "";
+          display: block;
+          height: 80px;
+          width: 100%;
+          background-color: transparent; 
+        }
+      }
 ```
