@@ -117,7 +117,9 @@ routes:
 ```
 
 ---
-## 🖌️ Styling and Padding (Optional)
+## 🖌️ Styling (Optional)
+
+### Padding 
 
 If you’re using the Navbar Card, you might notice it could collide with other cards on your dashboard. A simple way to fix this is by adding some padding to your Home Assistant views. The easiest way to do that is by using [card-mod](https://github.com/thomasloven/lovelace-card-mod) with a [custom theme](https://www.home-assistant.io/integrations/frontend/#themes).
 
@@ -144,5 +146,23 @@ your_theme:
           width: 100%;
           background-color: transparent; 
         }
+      }
+```
+
+### Hiding native tabs
+
+Another useful styling detail, is removing the native ha-tabs element on the top of the screen. We want to hide the ha-tabs element, but keep the edit, search and assist buttons visible.
+To do so, once again, using card-mod and custom themes is quite easy:
+
+```yaml
+your_theme:
+  app-header-background-color: transparent
+  app-header-text-color: var(--primary-text-color)
+
+  card-mod-root-yaml: |
+    .: |
+      ha-tabs {
+        pointer-events: none;
+        opacity: 0;
       }
 ```
