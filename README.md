@@ -96,7 +96,9 @@ Specific configuration for mobile mode.
 
 ### Styles
 
-Custom CSS styles can be applied to the Navbar Card to personalize its appearance and adapt it to your dashboard’s design. Simply provide a CSS string targeting the relevant classes to style the navbar to your liking.
+Custom CSS styles can be applied to the Navbar Card to personalize its appearance and adapt it to your dashboard’s design. Simply provide a CSS string targeting the relevant classes to style the navbar to your liking. 
+
+You can check out some examples [here](#examples-with-custom-styles) for inspiration.
 
 #### Targetable Classes
 
