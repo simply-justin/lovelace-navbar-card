@@ -1,4 +1,4 @@
-import { css, CSSResultGroup, html, LitElement } from 'lit';
+import { css, CSSResultGroup, html, LitElement, unsafeCSS } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { version } from '../package.json';
 import { HomeAssistant } from 'custom-card-helpers';
@@ -36,6 +36,7 @@ type NavbarCardConfig = {
   mobile?: {
     show_labels?: boolean;
   };
+  styles?: string;
 };
 
 @customElement('navbar-card')
@@ -157,14 +158,17 @@ export class NavbarCard extends LitElement {
     const desktopPositionClassname =
       mapStringToEnum(DesktopPosition, desktopPosition as string) ??
       DesktopPosition.bottom;
-    const desktopModeClassname = isDesktopMode ? 'desktop' : 'mobile';
+    const deviceModeClassName = isDesktopMode ? 'desktop' : 'mobile';
     const editModeClassname =
       this._inEditMode || this._inPreviewMode ? 'edit-mode' : '';
 
     // TODO use HA ripple effect for icon button
     return html`
+      <style>
+        ${this.customStyles}
+      </style>
       <ha-card
-        class="navbar ${editModeClassname} ${desktopModeClassname} ${desktopPositionClassname}">
+        class="navbar ${editModeClassname} ${deviceModeClassName} ${desktopPositionClassname}">
         ${routes?.map((route, index) => {
           const isActive = this._location == route.url;
           const showBadge = this.evaluateBadge(route.badge?.template);
@@ -201,14 +205,35 @@ export class NavbarCard extends LitElement {
     `;
   }
 
-  static get styles(): CSSResultGroup {
+  /**
+   * Dynamically apply user-provided styles
+   */
+  private get customStyles(): CSSResultGroup {
+    const userStyles = this._config?.styles
+      ? unsafeCSS(this._config.styles)
+      : css``;
+
+    // Combine default styles and user styles
+    return [this.defaultStyles, userStyles];
+  }
+
+  /**
+   * Custom function to apply default styles instead of using lit's static
+   * styles(), so that we can prioritize user custom styles over the default
+   * ones defined in this card
+   */
+  private get defaultStyles(): CSSResultGroup {
     // Mobile-first css styling
     return css`
       .navbar {
-        background: var(--card-background-color);
+        --navbar-background-color: var(--card-background-color);
+        --navbar-route-icon-size: 24px;
+        --navbar-primary-color: var(--primary-color);
+
+        background: var(--navbar-background-color);
         border-radius: 0px;
         /* TODO harcoded box shadow? */
-        box-shadow: 0px -1px 4px 0px rgba(0, 0, 0, 0.14) !important;
+        box-shadow: 0px -1px 4px 0px rgba(0, 0, 0, 0.14);
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -222,9 +247,6 @@ export class NavbarCard extends LitElement {
         bottom: 0;
         top: unset;
         z-index: 2; /* TODO check if needed */
-
-        --navbar-route-icon-size: 24px;
-        --navbar-primary-color: var(--primary-color);
       }
       .route {
         max-width: 60px;
@@ -299,7 +321,7 @@ export class NavbarCard extends LitElement {
       /* Desktop mode styles */
       .navbar.desktop {
         border-radius: var(--ha-card-border-radius, 12px);
-        box-shadow: var(--material-shadow-elevation-2dp) !important;
+        box-shadow: var(--material-shadow-elevation-2dp);
         width: auto;
         justify-content: space-evenly;
 
