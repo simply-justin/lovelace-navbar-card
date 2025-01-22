@@ -7,6 +7,12 @@
 
 Navbar Card is a custom Lovelace card designed to simplify navigation within your Home Assistant dashboard, heavily inspired by the great work of [Adaptive Mushroom](https://community.home-assistant.io/t/adaptive-mushroom/640308). It provides a sleek, responsive navigation bar that displays as a full-width bar at the bottom on mobile devices. On desktop, it adapts into a flexible container that can be positioned on any side of the screen (top, bottom, left, or right) adjusting its orientation to fit seamlessly.
 
+<br>
+
+---
+
+<br>
+
 ## 🚀 Installation
 ### Via HACS (recommended)
 1. Go to HACS in Home Assistant.
@@ -26,7 +32,12 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 8. Go to your dashboard, refresh your page and add your new navbar-card!
 
 
+<br>
+
 ---
+
+<br>
+
 ## ⚙️ Configuration
 
 ### Main options
@@ -36,19 +47,20 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 | `routes`  | [Routes](#routes)   | `Required` | Defines the array of routes to be shown in the navbar |
 | `desktop` | [Desktop](#desktop) | -          | Configuration options specific to desktop mode        |
 | `mobile`  | [Mobile](#mobile)   | -          | Configuration options specific to mobile mode         |
+| `styles`  | [Styles](#styles)   | -          | Custom CSS styles for the card                        |
 
 
 ### Routes
 
 Routes represents an array of clickable icons that redirects to a given path. Each item in the array should contain the following configuration:
 
-| Name            	| Type            	| Default    	| Description                                                     	|
-|-----------------	|-----------------	|------------	|-----------------------------------------------------------------	|
-| `url`           	| string          	| `Required` 	| The path to a lovelace view                                     	|
-| `icon`          	| string          	| `Required` 	| Material icon to display as this entry icon                     	|
-| `icon_selected` 	| string          	| -          	| Icon to be displayed when `url` matches the current browser url 	|
-| `badge`         	| [Badge](#badge) 	| -          	| Badge configuration                                             	|
-| `label`         	| string           	| -          	| Label to be displayed under the given route if `show_labels` is true                                    |
+| Name            	| Type            	| Default    	| Description                                                     	   |
+|-----------------	|-----------------	|------------	|--------------------------------------------------------------------- |
+| `url`           	| string          	| `Required` 	| The path to a lovelace view                                     	   |
+| `icon`          	| string          	| `Required` 	| Material icon to display as this entry icon                     	   |
+| `icon_selected` 	| string          	| -          	| Icon to be displayed when `url` matches the current browser url 	   |
+| `badge`         	| [Badge](#badge) 	| -          	| Badge configuration                                             	   |
+| `label`         	| string           	| -          	| Label to be displayed under the given route if `show_labels` is true |
 
 #### Badge
 
@@ -82,42 +94,38 @@ Specific configuration for mobile mode.
 |---------------|---------|---------|---------------------------------------------------|
 | `show_labels` | boolean | `false` | Whether or not to display labels under each route |
 
----
-## Example Configuration
-Basic example:
-```yaml
-type: custom:navbar-card
-desktop:
-  position: left
-  min_width: 768
-mobile:
-  show_labels: true
-routes:
-  - url: /lovelace/home
-    label: Home
-    icon: mdi:home-outline
-    icon_selected: mdi:home-assistant
-  - url: /lovelace/devices
-    label: Devices
-    icon: mdi:devices
-  - url: /lovelace/weather
-    label: Weather
-    icon: mdi:thermometer
-  - url: /lovelace/control
-    label: Control
-    icon: mdi:creation-outline
-    icon_selected: mdi:creation
-  - url: /lovelace/system
-    label: System
-    icon: mdi:information-outline
-    icon_selected: mdi:information
-    badge:
-      template: states['binary_sensor.docker_hub_update_available'].state === 'on'
-      color: var(--primary-color)
-```
+### Styles
+
+Custom CSS styles can be applied to the Navbar Card to personalize its appearance and adapt it to your dashboard’s design. Simply provide a CSS string targeting the relevant classes to style the navbar to your liking.
+
+#### Targetable Classes
+
+Here is a breakdown of the CSS classes available for customization:
+
+* `.navbar`: Base component for the navbar.
+  * `.navbar.desktop`: Styling for the desktop version.
+  * `.navbar.desktop.[top | bottom | left | right]`: Specific styles for different positions of the navbar.
+  * `.navbar.mobile`: Styling for the mobile version.
+
+* `.route`: Represents each route (or item) within the navbar.
+
+* `.button`: Background element for each icon.
+  * `.button.active`: Applies when a route is selected.
+
+* `.icon`: Refers to the ha-icon component used for displaying icons.
+
+* `.label`: Text label displayed under the icons (if labels are enabled).
+
+* `.badge`: Small indicator or badge that appears over the icon (if configured).
+
+
+<br>
 
 ---
-## 🖌️ Styling (Optional)
+
+<br>
+
+## 🛠️ Dashboard adjustements (Optional)
 
 ### Padding 
 
@@ -166,3 +174,133 @@ your_theme:
         opacity: 0;
       }
 ```
+
+<br>
+
+---
+
+<br>
+
+## 📚 Example Configurations
+<details open>
+<summary open>Basic example</summary>
+
+```yaml
+type: custom:navbar-card
+desktop:
+  position: left
+  min_width: 768
+mobile:
+  show_labels: true
+routes:
+  - url: /lovelace/home
+    label: Home
+    icon: mdi:home-outline
+    icon_selected: mdi:home-assistant
+  - url: /lovelace/devices
+    label: Devices
+    icon: mdi:devices
+  - url: /lovelace/weather
+    label: Weather
+    icon: mdi:thermometer
+  - url: /lovelace/control
+    label: Control
+    icon: mdi:creation-outline
+    icon_selected: mdi:creation
+  - url: /lovelace/system
+    label: System
+    icon: mdi:information-outline
+    icon_selected: mdi:information
+    badge:
+      template: states['binary_sensor.docker_hub_update_available'].state === 'on'
+      color: var(--primary-color)
+```
+</details>
+
+#### Examples with custom styles
+
+<details>
+<summary>Custom primary color</summary>
+
+```yaml
+type: custom:navbar-card
+routes:
+  - url: /lovelace/home
+    label: Home
+    icon: mdi:home-outline
+    icon_selected: mdi:home-assistant
+  - url: /lovelace/devices
+    label: Devices
+    icon: mdi:devices
+styles: |
+  .navbar {
+    --navbar-primary-color: red;
+  }
+```
+![custom_primary_colors](https://github.com/user-attachments/assets/e2656904-4def-4b48-9e13-0a6f582bf12f)
+</details>
+
+<details>
+<summary>Custom background color</summary>
+
+```yaml
+type: custom:navbar-card
+routes:
+  - url: /lovelace/home
+    label: Home
+    icon: mdi:home-outline
+    icon_selected: mdi:home-assistant
+  - url: /lovelace/devices
+    label: Devices
+    icon: mdi:devices
+styles: |
+  .navbar {
+    background: #000000;
+  }
+```
+![custom_background](https://github.com/user-attachments/assets/106ef845-b67d-4244-9f32-a0591934bce5)
+</details>
+
+<details>
+<summary>No rounded corners only in desktop mode</summary>
+
+```yaml
+type: custom:navbar-card
+routes:
+  - url: /lovelace/home
+    label: Home
+    icon: mdi:home-outline
+    icon_selected: mdi:home-assistant
+  - url: /lovelace/devices
+    label: Devices
+    icon: mdi:devices
+styles: |
+  .navbar.desktop{
+    border-radius: 0px;
+  }
+```
+![border_radius](https://github.com/user-attachments/assets/ca6d0a48-5625-4f0a-9418-72cae54b9fe5)
+</details>
+
+<details>
+<summary>More spacing on desktop mode and "bottom" position</summary>
+
+```yaml
+type: custom:navbar-card
+desktop:
+  position: bottom
+routes:
+  - url: /lovelace/home
+    label: Home
+    icon: mdi:home-outline
+    icon_selected: mdi:home-assistant
+  - url: /lovelace/devices
+    label: Devices
+    icon: mdi:devices
+styles: |
+  .navbar.desktop.bottom {
+    bottom: 100px;
+  }
+```
+![bottom_padding](https://github.com/user-attachments/assets/b08cab6b-c978-48af-8fb3-57d2d0599925)
+</details>
