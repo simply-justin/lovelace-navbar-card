@@ -145,6 +145,7 @@ Here’s an example of how you can tweak your theme to adjust the layout for bot
 
 ```yaml
 your_theme:
+  card-mod-theme: your_theme
   card-mod-root-yaml: |
     .: |
       /* Add padding to the left (or other sides, depending on your navbar position) for desktop screens */
@@ -176,6 +177,7 @@ your_theme:
   app-header-background-color: transparent
   app-header-text-color: var(--primary-text-color)
 
+  card-mod-theme: your_theme
   card-mod-root-yaml: |
     .: |
       ha-tabs {
