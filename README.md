@@ -1,6 +1,7 @@
 [![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
 [![Last commit](https://img.shields.io/github/last-commit/joseluis9595/lovelace-navbar-card)](#)
 ![Downloads](https://img.shields.io/github/downloads/joseluis9595/lovelace-navbar-card/total)
+[![HA Community forum](https://img.shields.io/badge/Home%20Assistant-Community%20Forum-319fee?logo=home-assistant)](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917)
 
 # Navbar Card
 ![navbar-card](https://github.com/user-attachments/assets/df2a9a5d-51ec-4786-8f54-36ece2aa6f9a)
