@@ -2,4 +2,4 @@
 /dist
 *.log
 
-./navbar-card.js
+navbar-card.js
