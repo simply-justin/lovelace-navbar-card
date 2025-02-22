@@ -232,7 +232,7 @@ your_theme:
         }
       }
 
-      /* Add bottom padding for mobile screens to prevent cards from overlapping with the navbar *
+      /* Add bottom padding for mobile screens to prevent cards from overlapping with the navbar */
       @media (max-width: 767px) {
         hui-sections-view:after {
           content: "";
