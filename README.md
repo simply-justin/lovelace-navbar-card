@@ -379,6 +379,7 @@ your_theme:
 Another useful styling detail, is removing the native ha-tabs element on the top of the screen. We want to hide the ha-tabs element, but keep the edit, search and assist buttons visible.
 To do so, once again, using card-mod and custom themes is quite easy:
 
+#### For Home Assistant < 2025.0
 ```yaml
 your_theme:
   app-header-background-color: transparent
@@ -388,6 +389,22 @@ your_theme:
   card-mod-root-yaml: |
     .: |
       ha-tabs {
+        pointer-events: none;
+        opacity: 0;
+      }
+```
+
+
+#### For Home Assistant ≥ 2025.0
+```yaml
+your_theme:
+  app-header-background-color: transparent
+  app-header-text-color: var(--primary-text-color)
+
+  card-mod-theme: your_theme
+  card-mod-root-yaml: |
+    .: |
+      .toolbar > sl-tab-group {
         pointer-events: none;
         opacity: 0;
       }
