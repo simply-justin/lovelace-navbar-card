@@ -53,6 +53,8 @@ const PROPS_TO_FORCE_UPDATE = [
 ];
 
 const DEFAULT_DESKTOP_POSITION = DesktopPosition.bottom;
+const DOUBLE_TAP_DELAY = 250;
+const HOLD_ACTION_DELAY = 500;
 
 @customElement('navbar-card')
 export class NavbarCard extends LitElement {
@@ -71,6 +73,13 @@ export class NavbarCard extends LitElement {
   private holdTriggered: boolean = false;
   private pointerStartX: number = 0;
   private pointerStartY: number = 0;
+
+  // double_tap_action state variables
+  private lastTapTime: number = 0;
+  private lastTapTarget: EventTarget | null = null;
+
+  // tap_action state variables
+  private tapTimeoutId: number | null = null;
 
   /**********************************************************************/
   /* Lit native callbacks */
@@ -155,11 +164,23 @@ export class NavbarCard extends LitElement {
         route.popup == null &&
         route.submenu == null &&
         route.tap_action == null &&
-        route.url == null
+        route.hold_action == null &&
+        route.url == null &&
+        route.double_tap_action == null
       ) {
         throw new Error(
-          'Each route must have either "url", "popup" or "tap_action" property configured',
+          'Each route must have either "url", "popup", "tap_action", "hold_action" or "double_tap_action" property configured',
         );
+      }
+      // Validate specific action types if defined
+      if (route.tap_action && route.tap_action.action == null) {
+        throw new Error('"tap_action" must have an "action" property');
+      }
+      if (route.hold_action && route.hold_action.action == null) {
+        throw new Error('"hold_action" must have an "action" property');
+      }
+      if (route.double_tap_action && route.double_tap_action.action == null) {
+        throw new Error('"double_tap_action" must have an "action" property');
       }
     });
 
@@ -320,6 +341,7 @@ export class NavbarCard extends LitElement {
 
         <div class="button ${isActive ? 'active' : ''}">
           ${this._getRouteIcon(route, isActive)}
+          <ha-ripple></ha-ripple>
         </div>
         ${this._shouldShowLabels(false)
           ? html`<div class="label ${isActive ? 'active' : ''}">
@@ -348,6 +370,8 @@ export class NavbarCard extends LitElement {
     } else {
       this._popup = null;
     }
+    // Remove Escape key listener when popup is closed
+    window.removeEventListener('keydown', this._handleClosePopupListener);
   };
 
   /**
@@ -474,7 +498,7 @@ export class NavbarCard extends LitElement {
             "
               style="--index: ${index}"
               @click=${(e: MouseEvent) =>
-                this._handleClick(e, popupItem, true)}>
+                this._handlePointerUp(e as PointerEvent, popupItem, true)}>
               ${showBadge
                 ? html`<div
                     class="badge"
@@ -482,7 +506,9 @@ export class NavbarCard extends LitElement {
                     'red'};"></div>`
                 : html``}
 
-              <div class="button">${this._getRouteIcon(popupItem, false)}</div>
+              <div class="button">
+                ${this._getRouteIcon(popupItem, false)}<ha-ripple></ha-ripple>
+              </div>
               ${this._shouldShowLabels(true)
                 ? html`<div class="label">
                     ${processTemplate(this.hass, popupItem.label) ?? ' '}
@@ -503,6 +529,18 @@ export class NavbarCard extends LitElement {
         backdrop.classList.add('visible');
       }
     });
+    // Add Escape key listener when popup is opened
+    window.addEventListener('keydown', this._handleClosePopupListener);
+  };
+
+  /**********************************************************************/
+  /* Pointer event listenrs */
+  /**********************************************************************/
+  private _handleClosePopupListener = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && this._popup) {
+      e.preventDefault();
+      this._closePopup();
+    }
   };
 
   /**********************************************************************/
@@ -518,11 +556,15 @@ export class NavbarCard extends LitElement {
       this.holdTimeoutId = window.setTimeout(() => {
         hapticFeedback();
         this.holdTriggered = true;
-      }, 500);
+      }, HOLD_ACTION_DELAY);
     }
   };
 
   private _handlePointerMove = (e: PointerEvent, _route: RouteItem) => {
+    if (!this.holdTimeoutId) {
+      return;
+    }
+
     // Calculate movement distance to prevent accidental hold triggers
     const moveX = Math.abs(e.clientX - this.pointerStartX);
     const moveY = Math.abs(e.clientY - this.pointerStartY);
@@ -536,83 +578,152 @@ export class NavbarCard extends LitElement {
     }
   };
 
-  private _handlePointerUp = (e: PointerEvent, route: RouteItem) => {
+  private _handlePointerUp = (
+    e: PointerEvent,
+    route: RouteItem,
+    isPopup = false,
+  ) => {
     if (this.holdTimeoutId !== null) {
       clearTimeout(this.holdTimeoutId);
       this.holdTimeoutId = null;
     }
 
-    if (this.holdTriggered && route.hold_action) {
-      if (route.hold_action.action === 'open-popup') {
-        const popupItems = route.popup ?? route.submenu;
-        if (!popupItems) {
-          console.error('No popup items found for route:', route);
-        } else {
-          const target = e.currentTarget as HTMLElement;
-          this._openPopup(popupItems, target);
-        }
-      } else {
-        fireDOMEvent(
-          this,
-          'hass-action',
-          { bubbles: true, composed: true },
-          {
-            action: 'hold',
-            config: {
-              hold_action: route.hold_action,
-            },
-          },
-        );
+    // Capture current target from the original event
+    const currentTarget = e.currentTarget as HTMLElement;
+
+    // Check for double tap
+    const currentTime = new Date().getTime();
+    const timeDiff = currentTime - this.lastTapTime;
+    const isDoubleTap =
+      timeDiff < DOUBLE_TAP_DELAY && e.target === this.lastTapTarget;
+
+    if (isDoubleTap && route.double_tap_action) {
+      // Clear pending tap action if double tap is detected
+      if (this.tapTimeoutId !== null) {
+        clearTimeout(this.tapTimeoutId);
+        this.tapTimeoutId = null;
       }
-      this.holdTriggered = false;
+      this._handleDoubleTapAction(currentTarget, route, isPopup);
+      this.lastTapTime = 0;
+      this.lastTapTarget = null;
+    } else if (this.holdTriggered && route.hold_action) {
+      this._handleHoldAction(currentTarget, route, isPopup);
+      this.lastTapTime = 0;
+      this.lastTapTarget = null;
     } else {
-      this._handleClick(e as unknown as MouseEvent, route);
+      this.lastTapTime = currentTime;
+      this.lastTapTarget = e.target;
+
+      this._handleTapAction(currentTarget, route, isPopup);
     }
+
+    this.holdTriggered = false;
   };
 
-  private _handleClick = (
-    e: MouseEvent,
+  private _handleHoldAction = (
+    target: HTMLElement,
     route: RouteItem,
     isPopupItem = false,
   ) => {
-    // Prevent default
-    e.preventDefault();
-    e.stopPropagation();
+    this._executeAction(target, route, route.hold_action, 'hold', isPopupItem);
+  };
 
-    if (!isPopupItem && route.tap_action?.action === 'open-popup') {
+  private _handleDoubleTapAction = (
+    target: HTMLElement,
+    route: RouteItem,
+    isPopupItem = false,
+  ) => {
+    this._executeAction(
+      target,
+      route,
+      route.double_tap_action,
+      'double_tap',
+      isPopupItem,
+    );
+  };
+
+  private _handleTapAction = (
+    target: HTMLElement,
+    route: RouteItem,
+    isPopupItem = false,
+  ) => {
+    // Set timeout for tap action to allow for potential double tap
+    if (route.double_tap_action) {
+      this.tapTimeoutId = window.setTimeout(() => {
+        // this._handleTapAction(currentTarget, route, false);
+        this._executeAction(
+          target,
+          route,
+          route.tap_action,
+          'tap',
+          isPopupItem,
+        );
+      }, DOUBLE_TAP_DELAY);
+    } else {
+      // this._handleTapAction(currentTarget, route, false);
+      this._executeAction(target, route, route.tap_action, 'tap', isPopupItem);
+    }
+  };
+
+  /**
+   * Generic handler for tap, hold, and double tap actions.
+   */
+  private _executeAction = (
+    target: HTMLElement,
+    route: RouteItem,
+    action:
+      | RouteItem['tap_action']
+      | RouteItem['hold_action']
+      | RouteItem['double_tap_action'],
+    actionType: 'tap' | 'hold' | 'double_tap',
+    isPopupItem = false,
+  ) => {
+    // Close popup for any action unless it's opening a new popup
+    if (action?.action !== 'open-popup' && isPopupItem) {
+      this._closePopup();
+    }
+
+    if (!isPopupItem && action?.action === 'open-popup') {
       const popupItems = route.popup ?? route.submenu;
       if (!popupItems) {
         console.error('No popup items found for route:', route);
       } else {
-        hapticFeedback();
-        const target = e.currentTarget as HTMLElement;
-        setTimeout(() => {
+        if (actionType === 'tap') {
+          hapticFeedback();
+        }
+        if (actionType === 'tap') {
+          // Quick fix to prevent the popup from closing inmediately after
+          // opening it on iOS devices.
+          setTimeout(() => {
+            this._openPopup(popupItems, target);
+          }, 100);
+        } else {
           this._openPopup(popupItems, target);
-        }, 100);
+        }
       }
-    } else if (route.tap_action?.action === 'toggle-menu'){
-      fireDOMEvent(
-        this,
-        'hass-toggle-menu', 
-        { bubbles: true, composed: true}
-      );
-    } else if (route.tap_action != null) {
-      hapticFeedback();
+    } else if (action?.action === 'toggle-menu') {
+      if (actionType === 'tap') {
+        hapticFeedback();
+      }
+      fireDOMEvent(this, 'hass-toggle-menu', { bubbles: true, composed: true });
+    } else if (action != null) {
+      if (actionType === 'tap') {
+        hapticFeedback();
+      }
       fireDOMEvent(
         this,
         'hass-action',
         { bubbles: true, composed: true },
         {
-          action: 'tap',
+          action: actionType,
           config: {
-            tap_action: route.tap_action,
+            [`${actionType}_action`]: action,
           },
         },
       );
-      this._closePopup();
-    } else if (route.url) {
+    } else if (actionType === 'tap' && route.url) {
+      // Handle default navigation for tap action if no specific action is defined
       navigate(this, route.url);
-      this._closePopup();
     }
   };
 
