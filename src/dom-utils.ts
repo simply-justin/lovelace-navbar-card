@@ -26,7 +26,7 @@ export const getNavbarTemplates = (): Record<
  * @param element The navbar-card parent element
  */
 export const forceResetRipple = (element: HTMLElement) => {
-  const ripples = element.querySelectorAll('md-ripple');
+  const ripples = element?.shadowRoot?.querySelectorAll('md-ripple');
   if (ripples) {
     ripples.forEach(ripple => {
       const surface = ripple?.shadowRoot?.querySelector('.surface');
