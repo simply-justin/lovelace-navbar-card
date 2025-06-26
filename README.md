@@ -48,14 +48,14 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 
 ## ⚙️ Configuration
 
-| Name       | Type                  | Default    | Description                                                   |
-| ---------- | --------------------- | ---------- | ------------------------------------------------------------- |
-| `routes`   | [Routes](#routes)     | `Required` | Defines the array of routes to be shown in the navbar         |
-| `desktop`  | [Desktop](#desktop)   | -          | Options specific to desktop mode                              |
-| `mobile`   | [Mobile](#mobile)     | -          | Options specific to mobile mode                               |
-| `template` | [Template](#template) | -          | Template name                                                 |
-| `styles`   | [Styles](#styles)     | -          | Custom CSS styles for the card                                |
-| `haptic`   | [Haptic](#haptic)     | -          | Fine tune when the haptic events should be fired in the card  |
+| Name       | Type                  | Default    | Description                                                  |
+| ---------- | --------------------- | ---------- | ------------------------------------------------------------ |
+| `routes`   | [Routes](#routes)     | `Required` | Defines the array of routes to be shown in the navbar        |
+| `desktop`  | [Desktop](#desktop)   | -          | Options specific to desktop mode                             |
+| `mobile`   | [Mobile](#mobile)     | -          | Options specific to mobile mode                              |
+| `template` | [Template](#template) | -          | Template name                                                |
+| `styles`   | [Styles](#styles)     | -          | Custom CSS styles for the card                               |
+| `haptic`   | [Haptic](#haptic)     | -          | Fine tune when the haptic events should be fired in the card |
 
 ### Routes
 
@@ -342,14 +342,14 @@ your_theme:
     .: |
       /* Add padding to the left (or other sides, depending on your navbar position) for desktop screens */
       @media (min-width: 768px) {
-        hui-sections-view {
+        :not(.edit-mode) > #view {
           padding-left: 100px !important;
         }
       }
 
       /* Add bottom padding for mobile screens to prevent cards from overlapping with the navbar */
       @media (max-width: 767px) {
-        hui-sections-view:after {
+        :not(.edit-mode) > hui-view:after {
           content: "";
           display: block;
           height: 80px;
