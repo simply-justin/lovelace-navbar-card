@@ -451,7 +451,7 @@ routes:
             text: Are you sure you want to restart Home Assistant?
     badge:
       show: >
-        [[[ states['binary_sensor.docker_hub_update_available'].state === 'on' ]]]
+        [[[ return states['binary_sensor.docker_hub_update_available'].state === 'on' ]]]
       color: var(--primary-color)
 ```
 
