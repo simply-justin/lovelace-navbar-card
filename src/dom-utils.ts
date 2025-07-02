@@ -1,4 +1,4 @@
-import { NavbarCardConfig } from './types';
+import { NavbarCardConfig } from './config';
 
 /**
  * Get a list of user defined navbar-card templates

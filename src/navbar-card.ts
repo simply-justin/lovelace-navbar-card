@@ -14,7 +14,7 @@ import {
   NavbarCardConfig,
   PopupItem,
   RouteItem,
-} from './types';
+} from './config';
 import {
   fireDOMEvent,
   hapticFeedback,
@@ -844,6 +844,11 @@ export class NavbarCard extends LitElement {
       default:
         return false;
     }
+  }
+
+  static async getConfigElement() {
+    await import('./navbar-card-editor');
+    return document.createElement('navbar-card-editor');
   }
 }
 

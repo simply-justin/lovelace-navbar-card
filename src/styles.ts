@@ -305,6 +305,126 @@ const POPUP_STYLES = css`
   }
 `;
 
+const EDITOR_STYLES = css`
+  .navbar-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .editor-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+  }
+  .route-header {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 0.2em 0.5em 0.2em 0;
+  }
+  .route-header-title {
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+  .route-header-summary {
+    flex: 1;
+    opacity: 0.7;
+    font-size: 0.95em;
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+  }
+  .route-header-image {
+    height: 1.2em;
+    vertical-align: middle;
+  }
+  .route-editor-bg {
+    background: var(--ha-card-background, #f7f7fa);
+    border-radius: 8px;
+    padding: 1em 1.2em 1.2em 1.2em;
+    margin-bottom: 0.5em;
+    box-shadow: 0 1px 2px #0001;
+  }
+  .route-hint {
+    color: var(--secondary-text-color, #888);
+    font-size: 0.97em;
+    margin-bottom: 0.7em;
+  }
+  .route-controls,
+  .popup-controls {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 1em;
+  }
+  .route-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+    margin-top: 1em;
+  }
+  .route-divider {
+    margin: 1.5em 0 1em 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    height: 1px;
+    background: none;
+  }
+  .add-route-btn {
+    margin-top: 1.5em;
+  }
+  .add-popup-btn {
+    margin-top: 1em;
+  }
+`;
+
+// Drag-and-drop styles for routes editor
+export const ROUTES_EDITOR_DND_STYLES = css`
+  .draggable-route {
+    border: 1.5px dashed transparent;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
+    background: none;
+    position: relative;
+  }
+  .draggable-route.drag-over {
+    border-color: var(--primary-color, #03a9f4);
+    background: rgba(3, 169, 244, 0.08);
+  }
+  .draggable-route.dragging {
+    opacity: 0.6;
+    background: #eee;
+    z-index: 2;
+  }
+  .drag-handle {
+    cursor: grab;
+    margin-right: 8px;
+    color: var(--primary-color, #03a9f4);
+    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+  }
+  .delete-route-btn {
+    --mdc-theme-primary: var(--error-color, #db4437);
+    color: var(--error-color, #db4437) !important;
+    background: none !important;
+    border: none;
+    box-shadow: none;
+    padding: 0 4px;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .delete-route-btn ha-icon {
+    color: var(--error-color, #db4437) !important;
+  }
+`;
+
 /**
  * Custom function to apply default styles instead of using lit's static
  * styles(), so that we can prioritize user custom styles over the default
@@ -317,5 +437,12 @@ export const getDefaultStyles = (): CSSResult => {
     ${NAVBAR_STYLES}
     ${ROUTE_STYLES}
     ${POPUP_STYLES}
+  `;
+};
+
+export const getEditorStyles = (): CSSResult => {
+  return css`
+    ${EDITOR_STYLES}
+    ${ROUTES_EDITOR_DND_STYLES}
   `;
 };

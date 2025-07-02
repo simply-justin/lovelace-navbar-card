@@ -1,84 +1,92 @@
-import { ActionConfig } from 'custom-card-helpers';
+/**
+ * Type referring to all the keys inside a dictionary, using dot notation
+ */
+export type DotNotationKeys<T> = T extends object
+  ? {
+      [K in keyof T]: T[K] extends any[]
+        ? `${K}`
+        : `${K}` | `${K}.${DotNotationKeys<T[K]>}`;
+    }[keyof T]
+  : never;
 
-export enum DesktopPosition {
-  top = 'top',
-  left = 'left',
-  bottom = 'bottom',
-  right = 'right',
+/**
+ * Get the nested type of a key inside a dictionary, using dot notation
+ */
+export type NestedType<
+  T,
+  K extends DotNotationKeys<T>,
+> = K extends `${infer FirstKey}.${infer RestKeys}`
+  ? FirstKey extends keyof T
+    ? NestedType<T[FirstKey], RestKeys>
+    : never
+  : K extends keyof T
+    ? T[K]
+    : never;
+
+/**
+ * Get a property from an object, given a dot notation field, with type checking
+ * for typescript using genericity
+ * @param obj any object
+ * @param key a valid string key using dot notation
+ * @returns the value of the given key inside the dictionary
+ */
+export function genericGetProperty<T, K extends DotNotationKeys<T>>(
+  obj: T,
+  key: K,
+): NestedType<T, K> {
+  return key.split('.').reduce((o: T, k: string) => o?.[k], obj) as NestedType<
+    T,
+    K
+  >;
 }
 
-// Custom navbar-card actions
-type PopupActionConfig = {
-  action: 'open-popup';
-};
-type NavigateBackActionConfig = {
-  action: 'navigate-back';
-};
+/**
+ * Set a property in an object, given a dot notation field, with type checking
+ * for typescript using genericity
+ * @param obj any object
+ * @param key a valid string key using dot notation
+ * @param value new value for the given key
+ */
+export function genericSetProperty<T, K extends DotNotationKeys<T>>(
+  obj: T,
+  key: K,
+  value: NestedType<T, K>,
+): T {
+  const paths = key.split('.');
+  const finalKey = paths.pop() as string;
 
-// Extend ActionConfig to include our custom popup action
-export type ExtendedActionConfig =
-  | ActionConfig
-  | PopupActionConfig
-  | NavigateBackActionConfig;
+  // Recursively copy the object structure
+  const copy = Array.isArray(obj) ? [...obj] : { ...obj };
 
-type JSTemplate = string;
-type TemplatableBoolean = JSTemplate | boolean;
-type TemplatableString = JSTemplate | boolean;
+  // Pointers for both current and original objects
+  let currentObj: any = copy;
+  let originalObj: any = obj;
 
-// Base properties shared by all route items
-type RouteItemBase = {
-  url?: string;
-  tap_action?: ExtendedActionConfig;
-  hold_action?: ExtendedActionConfig;
-  double_tap_action?: ExtendedActionConfig;
-  icon?: string;
-  image?: string;
-  icon_selected?: string;
-  image_selected?: string;
-  label?: TemplatableString;
-  badge?: {
-    template?: string; // TODO deprecate
-    color?: string;
-    show?: TemplatableBoolean;
-  };
-  hidden?: TemplatableBoolean;
-  selected?: TemplatableBoolean;
-};
+  // Iterate through each entry
+  for (const p of paths) {
+    if (typeof originalObj[p] !== 'object' || originalObj[p] === undefined) {
+      throw new Error(`Property '${p}' does not exist`);
+    }
+    // Copy each level
+    currentObj[p] = Array.isArray(originalObj[p])
+      ? [...originalObj[p]]
+      : { ...originalObj[p] };
+    currentObj = currentObj[p];
+    originalObj = originalObj[p];
+  }
 
-// Type for popup menu items (don't include popup property to avoid circular references)
-export type PopupItem = RouteItemBase;
-// Main route item type
-export type RouteItem = RouteItemBase & {
-  popup?: PopupItem[];
-  // Alias for backward compatibility
-  submenu?: PopupItem[];
-};
+  // Return the modified copy
+  currentObj[finalKey] = value;
+  return copy as T;
+}
 
-// Labels visibility granular configuration
-type LabelVisibilityConfig = boolean | 'popup_only' | 'routes_only';
-
-// Haptic configuration
-export type HapticConfig = {
-  url?: boolean;
-  tap_action?: boolean;
-  hold_action?: boolean;
-  double_tap_action?: boolean;
-};
-
-// Main card configuration
-export type NavbarCardConfig = {
-  routes: RouteItem[];
-  template?: string;
-  desktop?: {
-    show_labels?: LabelVisibilityConfig;
-    min_width?: number;
-    position?: DesktopPosition;
-    hidden?: TemplatableBoolean;
-  };
-  mobile?: {
-    show_labels?: LabelVisibilityConfig;
-    hidden?: TemplatableBoolean;
-  };
-  styles?: string;
-  haptic?: boolean | HapticConfig;
+/**
+ * A utility type that makes all properties of a given type optional,
+ * including nested properties. This type recursively applies `Partial`
+ * to every property in the object, allowing for deep partial updates.
+ *
+ * @template T - The object type to apply deep partiality to.
+ */
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
