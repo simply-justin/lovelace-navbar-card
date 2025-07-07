@@ -367,12 +367,6 @@ const EDITOR_STYLES = css`
     margin-bottom: 0.5em;
     box-shadow: 0 1px 2px #0001;
   }
-  .route-hint {
-    color: var(--secondary-text-color, #888);
-    font-size: 0.97em;
-    margin-bottom: 0.7em;
-  }
-  .route-controls,
   .popup-controls {
     display: flex;
     gap: 0.5em;
@@ -383,6 +377,10 @@ const EDITOR_STYLES = css`
     grid-template-columns: 1fr 1fr;
     gap: 1em;
     margin-top: 1em;
+
+    ha-textfield {
+      width: 100%;
+    }
   }
   .route-divider {
     margin: 1.5em 0 1em 0;
@@ -396,6 +394,25 @@ const EDITOR_STYLES = css`
   }
   .add-popup-btn {
     margin-top: 1em;
+  }
+  .template-editor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    margin-bottom: 0.7em;
+  }
+  .template-editor-label-row {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    margin-bottom: 0.2em;
+  }
+  .template-editor-label {
+    font-weight: 500;
+  }
+  .template-editor-helper {
+    font-size: 0.93em;
+    color: var(--secondary-text-color, #888);
   }
 `;
 

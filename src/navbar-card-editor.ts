@@ -141,21 +141,34 @@ export class NavbarCardEditor extends LitElement {
     configKey: DotNotationKeys<NavbarCardConfig>;
   }) {
     return html`
-      <ha-code-editor
-        mode="yaml"
-        autofocus
-        autocomplete-entities
-        autocomplete-icons
-        .hass=${this.hass}
-        .value=${cleanTemplate(
-          (genericGetProperty(this._config, options.configKey) as string) ?? '',
-        )}
-        @value-changed=${e => {
-          const templateValue =
-            e.target.value?.trim() == '' ? null : wrapTemplate(e.target.value);
-          // TODO JLAQ this throws a typescript error
-          this.updateConfigByKey(options.configKey, templateValue);
-        }}></ha-code-editor>
+      <div class="template-editor-container">
+        <div class="template-editor-label-row">
+          <label class="template-editor-label">${options.label}</label>
+          <span class="template-editor-helper"
+            ><a
+              href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#jstemplate"
+              target="_blank"
+              rel="noopener">
+              JS Template: </a
+            >insert valid Javascript code without [[[ ]]]</span
+          >
+        </div>
+        <ha-code-editor
+          mode="yaml"
+          autofocus
+          autocomplete-entities
+          autocomplete-icons
+          .hass=${this.hass}
+          .value=${cleanTemplate(
+            (genericGetProperty(this._config, options.configKey) as string) ??
+              '',
+          )}
+          @value-changed=${e => {
+            const templateValue =
+              e.target.value?.trim() == '' ? '' : wrapTemplate(e.target.value);
+            this.updateConfigByKey(options.configKey, templateValue);
+          }}></ha-code-editor>
+      </div>
     `;
   }
 
@@ -390,35 +403,48 @@ export class NavbarCardEditor extends LitElement {
                       <ha-icon icon="mdi:delete"></ha-icon>
                     </ha-button>
                   </div>
+                  <ha-segmented-button
+                    .value=${iconOrImage}
+                    @change=${(e: CustomEvent) =>
+                      setIconOrImage(e.detail.value)}>
+                    <ha-segmented-button-option value="icon"
+                      >Icon</ha-segmented-button-option
+                    >
+                    <ha-segmented-button-option value="image"
+                      >Image</ha-segmented-button-option
+                    >
+                  </ha-segmented-button>
                   <div class="route-editor route-editor-bg">
-                    <ha-segmented-button
-                      .value=${iconOrImage}
-                      @change=${(e: CustomEvent) =>
-                        setIconOrImage(e.detail.value)}>
-                      <ha-segmented-button-option value="icon"
-                        >Icon</ha-segmented-button-option
-                      >
-                      <ha-segmented-button-option value="image"
-                        >Image</ha-segmented-button-option
-                      >
-                    </ha-segmented-button>
                     <div class="route-grid">
-                      <div>${iconInput}</div>
-                      <div>${imageInput}</div>
+                      ${this.makeTextInput({
+                        label: 'Icon',
+                        configKey: `routes.${i}.icon` as any,
+                        disabled: iconOrImage !== 'icon',
+                        autocomplete: 'on',
+                      })}
+                      ${imageInput}
                     </div>
                     <div class="route-grid">
-                      <div>${iconSelectedInput}</div>
-                      <div>${imageSelectedInput}</div>
+                      ${iconSelectedInput} ${imageSelectedInput}
                     </div>
-                    <div class="route-grid">
-                      <div>${labelInput}</div>
-                      <div>${urlInput}</div>
-                    </div>
-                    <div class="route-grid">
-                      <div>${hiddenInput}</div>
-                      <div>${selectedInput}</div>
-                    </div>
+                    <div class="route-grid">${labelInput} ${urlInput}</div>
                     <div class="route-divider"></div>
+                    <ha-expansion-panel outlined>
+                      <h5 slot="header">
+                        <ha-icon icon="mdi:cog"></ha-icon>
+                        Advanced features
+                      </h5>
+                      <div class="editor-section">
+                        ${this.makeTemplateEditor({
+                          label: 'Hidden',
+                          configKey: `routes.${i}.hidden` as any,
+                        })}
+                        ${this.makeTemplateEditor({
+                          label: 'Selected',
+                          configKey: `routes.${i}.selected` as any,
+                        })}
+                      </div>
+                    </ha-expansion-panel>
                     <ha-expansion-panel outlined>
                       <h5 slot="header">
                         <ha-icon icon="mdi:star-circle-outline"></ha-icon>
