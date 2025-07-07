@@ -317,6 +317,27 @@ const EDITOR_STYLES = css`
     gap: 6px;
     padding: 12px;
   }
+  .editor-row {
+    gap: 6px;
+    display: flex;
+    flex-direction: row;
+  }
+  .editor-row-item {
+    flex: 1;
+
+    ha-textfield {
+      width: 100%;
+    }
+  }
+  @media (max-width: 600px) {
+    .editor-row {
+      flex-direction: column !important;
+      gap: 0.5em;
+    }
+    .editor-row-item {
+      width: 100%;
+    }
+  }
   .route-header {
     display: flex;
     align-items: center;
