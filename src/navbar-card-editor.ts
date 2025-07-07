@@ -92,7 +92,6 @@ export class NavbarCardEditor extends LitElement {
     prefixIcon?: string;
     tooltip?: string;
   }) {
-
     return html`
       <div style="display: flex; align-items: center;">
         ${options.tooltip
@@ -209,16 +208,30 @@ export class NavbarCardEditor extends LitElement {
           Desktop options
         </h4>
         <div class="editor-section">
-          ${this.makeComboBox<DesktopPosition>({
-            label: 'Position',
-            items: [
-              { label: 'Top', value: DesktopPosition.top },
-              { label: 'Bottom', value: DesktopPosition.bottom },
-              { label: 'Left', value: DesktopPosition.left },
-              { label: 'Right', value: DesktopPosition.right },
-            ],
-            configKey: 'desktop.position',
-          })}
+          <div class="editor-row">
+            <div class="editor-row-item">
+              ${this.makeComboBox<DesktopPosition>({
+                label: 'Position',
+                items: [
+                  { label: 'Top', value: DesktopPosition.top },
+                  { label: 'Bottom', value: DesktopPosition.bottom },
+                  { label: 'Left', value: DesktopPosition.left },
+                  { label: 'Right', value: DesktopPosition.right },
+                ],
+                configKey: 'desktop.position',
+              })}
+            </div>
+            <div class="editor-row-item">
+              ${this.makeTextInput({
+                label: 'Min width',
+                configKey: 'desktop.min_width',
+                type: 'number',
+                suffix: 'px',
+                tooltip:
+                  'Minimum screen width (in pixels) for desktop mode to be active.',
+              })}
+            </div>
+          </div>
           ${this.makeComboBox<LabelVisibilityConfig>({
             label: 'Show labels',
             items: [
@@ -228,11 +241,6 @@ export class NavbarCardEditor extends LitElement {
               { label: 'Routes only', value: 'routes_only' },
             ],
             configKey: 'desktop.show_labels',
-          })}
-          ${this.makeTextInput({
-            label: 'Min width',
-            configKey: 'desktop.min_width',
-            type: 'number',
           })}
           ${this.makeTemplateEditor({
             label: 'Hidden',
