@@ -88,25 +88,36 @@ export class NavbarCardEditor extends LitElement {
     type?: 'text' | 'number' | 'textarea' | 'url';
     disabled?: boolean;
     autocomplete?: string;
+    suffix?: string;
+    prefixIcon?: string;
+    tooltip?: string;
   }) {
+
     return html`
-      <ha-textfield
-        label=${options.label}
-        type=${options.type}
-        .value=${genericGetProperty(this._config, options.configKey) ?? ''}
-        .disabled=${options.disabled}
-        .autocomplete=${options.autocomplete}
-        @input="${e => {
-          console.log(e);
-          this.updateConfigByKey(
-            options.configKey,
-            options.type == 'number'
-              ? e.target.value == ''
-                ? undefined
-                : parseInt(e.target.value)
-              : e.target.value,
-          );
-        }}" />
+      <div style="display: flex; align-items: center;">
+        ${options.tooltip
+          ? html`<ha-tooltip .placement="right" .content=${options.tooltip}>
+              <ha-icon icon="mdi:help-circle"></ha-icon>
+            </ha-tooltip>`
+          : ''}
+        <ha-textfield
+          suffix=${options.suffix}
+          label=${options.label}
+          type=${options.type}
+          .value=${genericGetProperty(this._config, options.configKey) ?? ''}
+          .disabled=${options.disabled}
+          .autocomplete=${options.autocomplete}
+          @input="${e => {
+            this.updateConfigByKey(
+              options.configKey,
+              options.type == 'number'
+                ? e.target.value == ''
+                  ? undefined
+                  : parseInt(e.target.value)
+                : e.target.value,
+            );
+          }}"></ha-textfield>
+      </div>
     `;
   }
 
