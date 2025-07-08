@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Reason: Dynamic dot-notation keys for deeply nested config editing in a generic editor.
-import { LitElement, html } from 'lit';
+import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   DesktopPosition,
@@ -22,6 +22,16 @@ enum HAActions {
   hold_action,
   double_tap_action,
 }
+
+const BOOLEAN_JS_TEMPLATE_HELPER = html`Insert valid Javascript code without [[[
+  ]]].
+  <a
+    href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#jstemplate"
+    target="_blank"
+    rel="noopener"
+    >See documentation</a
+  >
+  for more info. <br />Must return a <strong>boolean</strong> value`;
 
 @customElement('navbar-card-editor')
 export class NavbarCardEditor extends LitElement {
@@ -63,7 +73,7 @@ export class NavbarCardEditor extends LitElement {
   /* Edition components */
   /**********************************************************************/
 
-  makeHelpTooltipIcon(options: { tooltip: string }) {
+  makeHelpTooltipIcon(options: { tooltip: string | TemplateResult }) {
     return html`<ha-tooltip .placement="right" .content=${options.tooltip}>
       <ha-icon icon="mdi:help-circle"></ha-icon>
     </ha-tooltip>`;
@@ -149,22 +159,15 @@ export class NavbarCardEditor extends LitElement {
   makeTemplateEditor(options: {
     label: string;
     configKey: DotNotationKeys<NavbarCardConfig>;
+    tooltip?: string | TemplateResult;
+    helper?: string | TemplateResult;
+    mode?: string;
   }) {
     return html`
       <div class="template-editor-container">
-        <label class="editor-label">${options.label}</label>
-        <ha-alert alert-type="info" title="JSTemplate field">
-          Insert valid Javascript code without [[[ ]]].
-          <a
-            href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#jstemplate"
-            target="_blank"
-            rel="noopener"
-            >See documentation</a
-          >
-          for more info.
-        </ha-alert>
+        <label class="editor-label">${options.label} </label>
         <ha-code-editor
-          mode="yaml"
+          mode=${options.mode}
           autofocus
           autocomplete-entities
           autocomplete-icons
@@ -178,6 +181,9 @@ export class NavbarCardEditor extends LitElement {
               e.target.value?.trim() == '' ? '' : wrapTemplate(e.target.value);
             this.updateConfigByKey(options.configKey, templateValue);
           }}></ha-code-editor>
+        ${options.helper
+          ? html`<div class="template-editor-helper">${options.helper}</div>`
+          : html``}
       </div>
     `;
   }
@@ -330,6 +336,7 @@ export class NavbarCardEditor extends LitElement {
           ${this.makeTemplateEditor({
             label: 'Hidden',
             configKey: 'desktop.hidden',
+            helper: BOOLEAN_JS_TEMPLATE_HELPER,
           })}
         </div>
       </ha-expansion-panel>
@@ -357,6 +364,7 @@ export class NavbarCardEditor extends LitElement {
           ${this.makeTemplateEditor({
             label: 'Hidden',
             configKey: 'mobile.hidden',
+            helper: BOOLEAN_JS_TEMPLATE_HELPER,
           })}
         </div>
       </ha-expansion-panel>
@@ -490,10 +498,12 @@ export class NavbarCardEditor extends LitElement {
                           ${this.makeTemplateEditor({
                             label: 'Hidden',
                             configKey: `routes.${i}.hidden` as any,
+                            helper: BOOLEAN_JS_TEMPLATE_HELPER,
                           })}
                           ${this.makeTemplateEditor({
                             label: 'Selected',
                             configKey: `routes.${i}.selected` as any,
+                            helper: BOOLEAN_JS_TEMPLATE_HELPER,
                           })}
                         </div>
                       </ha-expansion-panel>
