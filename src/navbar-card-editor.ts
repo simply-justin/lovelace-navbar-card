@@ -326,52 +326,6 @@ export class NavbarCardEditor extends LitElement {
         </h4>
         <div class="editor-section">
           ${this._config.routes.map((route, i) => {
-            const iconOrImage = route.image ? 'image' : 'icon';
-            const setIconOrImage = (type: 'icon' | 'image') => {
-              if (type === 'icon') {
-                this.updateConfigByKey(`routes.${i}.image` as any, undefined);
-              } else {
-                this.updateConfigByKey(`routes.${i}.icon` as any, undefined);
-              }
-            };
-            const iconInput = this.makeTextInput({
-              label: 'Icon',
-              configKey: `routes.${i}.icon` as any,
-              disabled: iconOrImage !== 'icon',
-              autocomplete: 'on',
-            });
-            const imageInput = this.makeTextInput({
-              label: 'Image',
-              configKey: `routes.${i}.image` as any,
-              disabled: iconOrImage !== 'image',
-            });
-            const iconSelectedInput = this.makeTextInput({
-              label: 'Icon Selected',
-              configKey: `routes.${i}.icon_selected` as any,
-              autocomplete: 'on',
-            });
-            const imageSelectedInput = this.makeTextInput({
-              label: 'Image Selected',
-              configKey: `routes.${i}.image_selected` as any,
-            });
-            const labelInput = this.makeTextInput({
-              label: 'Label',
-              configKey: `routes.${i}.label` as any,
-            });
-            const urlInput = this.makeTextInput({
-              label: 'URL',
-              configKey: `routes.${i}.url` as any,
-              type: 'url',
-            });
-            const hiddenInput = this.makeTextInput({
-              label: 'Hidden',
-              configKey: `routes.${i}.hidden` as any,
-            });
-            const selectedInput = this.makeTextInput({
-              label: 'Selected',
-              configKey: `routes.${i}.selected` as any,
-            });
-            const summaryLabel = route.label || '';
             return html`
               <div
                 class="draggable-route"
@@ -388,15 +342,12 @@ export class NavbarCardEditor extends LitElement {
                     </span>
                     <div class="route-header-title">Route</div>
                     <span class="route-header-summary">
-                      ${iconOrImage === 'icon' && route.icon
-                        ? html`<ha-icon icon="${route.icon}"></ha-icon>`
-                        : ''}
-                      ${iconOrImage === 'image' && route.image
+                      ${route.image != undefined
                         ? html`<img
                             src="${route.image}"
                             class="route-header-image" />`
-                        : ''}
-                      ${summaryLabel}
+                        : html`<ha-icon icon="${route.icon}"></ha-icon>`}
+                      ${route.label ?? ''}
                     </span>
                     <ha-button
                       @click=${() => this.removeRoute(i)}
@@ -405,31 +356,49 @@ export class NavbarCardEditor extends LitElement {
                       <ha-icon icon="mdi:delete"></ha-icon>
                     </ha-button>
                   </div>
-                  <ha-segmented-button
-                    .value=${iconOrImage}
-                    @change=${(e: CustomEvent) =>
-                      setIconOrImage(e.detail.value)}>
-                    <ha-segmented-button-option value="icon"
-                      >Icon</ha-segmented-button-option
-                    >
-                    <ha-segmented-button-option value="image"
-                      >Image</ha-segmented-button-option
-                    >
-                  </ha-segmented-button>
                   <div class="route-editor route-editor-bg">
                     <div class="route-grid">
                       ${this.makeTextInput({
-                        label: 'Icon',
-                        configKey: `routes.${i}.icon` as any,
-                        disabled: iconOrImage !== 'icon',
-                        autocomplete: 'on',
+                        label: 'Label',
+                        configKey: `routes.${i}.label` as any,
                       })}
-                      ${imageInput}
+                      ${this.makeTextInput({
+                        label: 'URL',
+                        configKey: `routes.${i}.url` as any,
+                        type: 'url',
+                        placeholder: '/path/to/your/dashboard',
+                      })}
                     </div>
-                    <div class="route-grid">
-                      ${iconSelectedInput} ${imageSelectedInput}
+                    <div>
+                      <label class="editor-label">Route icon</label>
+                      <div class="route-grid">
+                        ${this.makeIconPicker({
+                          label: 'Icon',
+                          configKey: `routes.${i}.icon` as any,
+                          // TODO JLAQ disabled: iconOrImage !== 'icon',
+                        })}
+                        ${this.makeIconPicker({
+                          label: 'Icon selected',
+                          configKey: `routes.${i}.icon_selected` as any,
+                          // TODO JLAQ disabled: iconOrImage !== 'icon',
+                        })}
+                      </div>
                     </div>
-                    <div class="route-grid">${labelInput} ${urlInput}</div>
+                    <div>
+                      <label class="editor-label">Route image</label>
+                      <div class="route-grid">
+                        ${this.makeTextInput({
+                          label: 'Image',
+                          configKey: `routes.${i}.image` as any,
+                          placeholder: 'URL of the image',
+                        })}
+                        ${this.makeTextInput({
+                          label: 'Image selected',
+                          configKey: `routes.${i}.image_selected` as any,
+                          placeholder: 'URL of the image',
+                        })}
+                      </div>
+                    </div>
                     <div class="route-divider"></div>
                     <ha-expansion-panel outlined>
                       <h5 slot="header">
@@ -477,21 +446,6 @@ export class NavbarCardEditor extends LitElement {
                           const popupIconOrImage = popup.image
                             ? 'image'
                             : 'icon';
-                          const setPopupIconOrImage = (
-                            type: 'icon' | 'image',
-                          ) => {
-                            if (type === 'icon') {
-                              this.updateConfigByKey(
-                                `routes.${i}.popup.${j}.image` as any,
-                                undefined,
-                              );
-                            } else {
-                              this.updateConfigByKey(
-                                `routes.${i}.popup.${j}.icon` as any,
-                                undefined,
-                              );
-                            }
-                          };
                           const popupIconInput = this.makeTextInput({
                             label: 'Icon',
                             configKey: `routes.${i}.popup.${j}.icon` as any,
@@ -544,17 +498,6 @@ export class NavbarCardEditor extends LitElement {
                                     <ha-icon icon="mdi:delete"></ha-icon>
                                   </ha-button>
                                 </div>
-                                <ha-segmented-button
-                                  .value=${popupIconOrImage}
-                                  @change=${(e: CustomEvent) =>
-                                    setPopupIconOrImage(e.detail.value)}>
-                                  <ha-segmented-button-option value="icon"
-                                    >Icon</ha-segmented-button-option
-                                  >
-                                  <ha-segmented-button-option value="image"
-                                    >Image</ha-segmented-button-option
-                                  >
-                                </ha-segmented-button>
                                 <div class="route-grid">
                                   <div>${popupIconInput}</div>
                                   <div>${popupImageInput}</div>
