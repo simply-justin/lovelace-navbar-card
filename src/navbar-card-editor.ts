@@ -91,6 +91,7 @@ export class NavbarCardEditor extends LitElement {
     suffix?: string;
     prefixIcon?: string;
     tooltip?: string;
+    placeholder?: string;
   }) {
     return html`
       <div style="display: flex; align-items: center;">
@@ -103,6 +104,7 @@ export class NavbarCardEditor extends LitElement {
           suffix=${options.suffix}
           label=${options.label}
           type=${options.type}
+          placeholder=${options.placeholder}
           .value=${genericGetProperty(this._config, options.configKey) ?? ''}
           .disabled=${options.disabled}
           .autocomplete=${options.autocomplete}
