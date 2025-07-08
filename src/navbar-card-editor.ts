@@ -187,11 +187,13 @@ export class NavbarCardEditor extends LitElement {
     configKey: DotNotationKeys<NavbarCardConfig>;
     disabled?: boolean;
     tooltip?: string;
+    defaultValue?: boolean;
   }) {
     return html`
       <div style="display: flex; align-items: center; gap: 1em;">
         <ha-switch
-          .checked=${!!genericGetProperty(this._config, options.configKey)}
+          .checked=${genericGetProperty(this._config, options.configKey) ??
+          options.defaultValue}
           .disabled=${options.disabled}
           @change=${(e: Event) => {
             const checked = (e.target as HTMLInputElement).checked;
@@ -246,30 +248,38 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
-  renderHapticsEditor() {
+  renderHapticEditor() {
+    const hapticRawValue = genericGetProperty(this._config, 'haptic');
+    const hapticValue: boolean | undefined =
+      typeof hapticRawValue === 'boolean' ? hapticRawValue : undefined;
+
     return html`
       <ha-expansion-panel outlined>
         <h4 slot="header">
           <ha-icon icon="mdi:vibrate"></ha-icon>
-          Haptics
+          Haptic
         </h4>
         <div class="editor-section">
           ${this.makeSwitch({
             label: 'When pressing routes with URL configured',
             configKey: 'haptic.url',
+            defaultValue: hapticValue,
           })}
           ${this.makeSwitch({
             label: "When executing the 'tap_action' configured for a route",
             configKey: 'haptic.tap_action',
+            defaultValue: hapticValue,
           })}
           ${this.makeSwitch({
             label: "When executing the 'hold_action' configured for a route",
             configKey: 'haptic.hold_action',
+            defaultValue: hapticValue,
           })}
           ${this.makeSwitch({
             label:
               "When executing the 'double_tap_action' configured for a route",
             configKey: 'haptic.double_tap_action',
+            defaultValue: hapticValue,
           })}
         </div>
       </ha-expansion-panel>
