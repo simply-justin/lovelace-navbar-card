@@ -23,7 +23,7 @@ enum HAActions {
   double_tap_action,
 }
 
-const BOOLEAN_JS_TEMPLATE_HELPER = html`Insert valid Javascript code without [[[
+const GENERIC_JS_TEMPLATE_HELPER = html`Insert valid Javascript code without [[[
   ]]].
   <a
     href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#jstemplate"
@@ -31,7 +31,13 @@ const BOOLEAN_JS_TEMPLATE_HELPER = html`Insert valid Javascript code without [[[
     rel="noopener"
     >See documentation</a
   >
-  for more info. <br />Must return a <strong>boolean</strong> value`;
+  for more info.`;
+
+const BOOLEAN_JS_TEMPLATE_HELPER = html`${GENERIC_JS_TEMPLATE_HELPER}<br />Must
+  return a <strong>boolean</strong> value`;
+
+const STRING_JS_TEMPLATE_HELPER = html`${GENERIC_JS_TEMPLATE_HELPER}<br />Must
+  return a <strong>string</strong> value`;
 
 @customElement('navbar-card-editor')
 export class NavbarCardEditor extends LitElement {
@@ -156,18 +162,87 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
+  makeStringOrTemplateEditor(options: {
+    label: string;
+    configKey: DotNotationKeys<NavbarCardConfig>;
+    tooltip?: string | TemplateResult;
+    helper?: string | TemplateResult;
+  }) {
+    const value = genericGetProperty(this._config, options.configKey) as
+      | string
+      | undefined;
+    const isTemplate =
+      typeof value === 'string' &&
+      value.trim().startsWith('[[[') &&
+      value.trim().endsWith(']]]');
+
+    // Handler to toggle between template and text
+    const toggleMode = () => {
+      let newValue: string = value ?? '';
+      if (isTemplate) {
+        // Remove template delimiters
+        newValue = cleanTemplate(newValue);
+      } else {
+        // Add template delimiters
+        newValue = wrapTemplate(newValue);
+      }
+      this.updateConfigByKey(options.configKey, newValue);
+    };
+
+    // Button label and icon
+    const buttonLabel = isTemplate ? 'Switch to text' : 'Switch to template';
+    const buttonIcon = isTemplate ? 'mdi:format-text' : 'mdi:code-braces';
+
+    // Compose the toggle button
+    const toggleButton = html`
+      <ha-button @click=${toggleMode} outlined style="margin-left: 0.5em;">
+        <ha-icon icon="${buttonIcon}"></ha-icon>&nbsp;${buttonLabel}
+      </ha-button>
+    `;
+
+    // Render the appropriate editor with the toggle button
+    if (isTemplate) {
+      return html`
+        <div style="display: flex; align-items: center; gap: 0.5em;">
+          <label class="editor-label" style="flex: 1;">${options.label}</label>
+          ${toggleButton}
+        </div>
+        ${this.makeTemplateEditor({
+          label: '',
+          configKey: options.configKey,
+          tooltip: options.tooltip,
+          helper: options.helper,
+        })}
+      `;
+    } else {
+      return html`
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5em;">
+            <label class="editor-label" style="flex: 1;"
+              >${options.label}</label
+            >
+            ${toggleButton}
+          </div>
+          ${this.makeTextInput({
+            label: '',
+            configKey: options.configKey,
+            tooltip: options.tooltip as string | undefined,
+          })}
+        </div>
+      `;
+    }
+  }
+
   makeTemplateEditor(options: {
     label: string;
     configKey: DotNotationKeys<NavbarCardConfig>;
     tooltip?: string | TemplateResult;
     helper?: string | TemplateResult;
-    mode?: string;
   }) {
     return html`
       <div class="template-editor-container">
         <label class="editor-label">${options.label} </label>
         <ha-code-editor
-          mode=${options.mode}
           autofocus
           autocomplete-entities
           autocomplete-icons
@@ -446,18 +521,21 @@ export class NavbarCardEditor extends LitElement {
                       ></ha-icon-button>
                     </div>
                     <div class="route-editor route-editor-bg">
-                      <div class="route-grid">
-                        ${this.makeTextInput({
-                          label: 'Label',
-                          configKey: `routes.${i}.label` as any,
-                        })}
-                        ${this.makeTextInput({
-                          label: 'URL',
-                          configKey: `routes.${i}.url` as any,
-                          type: 'url',
-                          placeholder: '/path/to/your/dashboard',
-                        })}
+                      <div class="editor-row">
+                        <div class="editor-row-item">
+                          ${this.makeTextInput({
+                            label: 'URL',
+                            configKey: `routes.${i}.url` as any,
+                            type: 'text',
+                            placeholder: '/path/to/your/dashboard',
+                          })}
+                        </div>
                       </div>
+                      ${this.makeStringOrTemplateEditor({
+                        label: 'Label',
+                        configKey: `routes.${i}.label` as any,
+                        helper: STRING_JS_TEMPLATE_HELPER,
+                      })}
                       <div>
                         <label class="editor-label">Route icon</label>
                         <div class="route-grid">
