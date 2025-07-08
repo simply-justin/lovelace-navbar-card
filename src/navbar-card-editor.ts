@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Reason: Dynamic dot-notation keys for deeply nested config editing in a generic editor.
-import { LitElement, html, css } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   DesktopPosition,
@@ -63,6 +63,12 @@ export class NavbarCardEditor extends LitElement {
   /* Edition components */
   /**********************************************************************/
 
+  makeHelpTooltipIcon(options: { tooltip: string }) {
+    return html`<ha-tooltip .placement="right" .content=${options.tooltip}>
+      <ha-icon icon="mdi:help-circle"></ha-icon>
+    </ha-tooltip>`;
+  }
+
   makeComboBox<T>(options: {
     label: string;
     // TODO JLAQ this type T should be replaced with the value of the key in the config
@@ -96,9 +102,7 @@ export class NavbarCardEditor extends LitElement {
     return html`
       <div style="display: flex; align-items: center;">
         ${options.tooltip
-          ? html`<ha-tooltip .placement="right" .content=${options.tooltip}>
-              <ha-icon icon="mdi:help-circle"></ha-icon>
-            </ha-tooltip>`
+          ? this.makeHelpTooltipIcon({ tooltip: options.tooltip })
           : ''}
         <ha-textfield
           suffix=${options.suffix}
@@ -174,6 +178,29 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
+  makeSwitch(options: {
+    label: string;
+    configKey: DotNotationKeys<NavbarCardConfig>;
+    disabled?: boolean;
+    tooltip?: string;
+  }) {
+    return html`
+      <div style="display: flex; align-items: center; gap: 1em;">
+        <ha-switch
+          .checked=${!!genericGetProperty(this._config, options.configKey)}
+          .disabled=${options.disabled}
+          @change=${(e: Event) => {
+            const checked = (e.target as HTMLInputElement).checked;
+            this.updateConfigByKey(options.configKey, checked as any);
+          }}></ha-switch>
+        ${options.tooltip
+          ? this.makeHelpTooltipIcon({ tooltip: options.tooltip })
+          : ''}
+        <label>${options.label}</label>
+      </div>
+    `;
+  }
+
   /**********************************************************************/
   /* Editor sections */
   /**********************************************************************/
@@ -210,6 +237,36 @@ export class NavbarCardEditor extends LitElement {
                 e.target.value?.trim() == '' ? null : e.target.value;
               this.updateConfig({ styles: trimmedStyles });
             }}></ha-code-editor>
+        </div>
+      </ha-expansion-panel>
+    `;
+  }
+
+  renderHapticsEditor() {
+    return html`
+      <ha-expansion-panel outlined>
+        <h4 slot="header">
+          <ha-icon icon="mdi:vibrate"></ha-icon>
+          Haptics
+        </h4>
+        <div class="editor-section">
+          ${this.makeSwitch({
+            label: 'When pressing routes with URL configured',
+            configKey: 'haptic.url',
+          })}
+          ${this.makeSwitch({
+            label: "When executing the 'tap_action' configured for a route",
+            configKey: 'haptic.tap_action',
+          })}
+          ${this.makeSwitch({
+            label: "When executing the 'hold_action' configured for a route",
+            configKey: 'haptic.hold_action',
+          })}
+          ${this.makeSwitch({
+            label:
+              "When executing the 'double_tap_action' configured for a route",
+            configKey: 'haptic.double_tap_action',
+          })}
         </div>
       </ha-expansion-panel>
     `;
@@ -675,7 +732,8 @@ export class NavbarCardEditor extends LitElement {
           actionType: HAActions.tap_action,
         })}
         ${this.renderRoutesEditor()} ${this.renderDesktopEditor()}
-        ${this.renderMobileEditor()} ${this.renderStylesEditor()}
+        ${this.renderMobileEditor()} ${this.renderHapticsEditor()}
+        ${this.renderStylesEditor()}
       </div>
     `;
   }
