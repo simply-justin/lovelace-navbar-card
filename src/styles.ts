@@ -334,9 +334,15 @@ const EDITOR_STYLES = css`
       flex-direction: column !important;
       gap: 0.5em;
     }
+    .route-grid {
+      grid-template-columns: 1fr !important;
+    }
     .editor-row-item {
       width: 100%;
     }
+  }
+  .editor-label {
+    font-weight: 500;
   }
   .route-header {
     display: flex;
@@ -360,12 +366,14 @@ const EDITOR_STYLES = css`
     height: 1.2em;
     vertical-align: middle;
   }
-  .route-editor-bg {
+  .route-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
     background: var(--ha-card-background, #f7f7fa);
     border-radius: 8px;
     padding: 1em 1.2em 1.2em 1.2em;
-    margin-bottom: 0.5em;
-    box-shadow: 0 1px 2px #0001;
+    margin: 1em 0em;
   }
   .popup-controls {
     display: flex;
@@ -376,7 +384,6 @@ const EDITOR_STYLES = css`
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1em;
-    margin-top: 1em;
 
     ha-textfield {
       width: 100%;
@@ -400,15 +407,6 @@ const EDITOR_STYLES = css`
     flex-direction: column;
     gap: 0.3em;
     margin-bottom: 0.7em;
-  }
-  .template-editor-label-row {
-    display: flex;
-    align-items: center;
-    gap: 1em;
-    margin-bottom: 0.2em;
-  }
-  .template-editor-label {
-    font-weight: 500;
   }
   .template-editor-helper {
     font-size: 0.93em;

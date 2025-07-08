@@ -130,7 +130,7 @@ export class NavbarCardEditor extends LitElement {
     return html`
       <ha-icon-picker
         label=${options.label}
-        .value=${genericGetProperty(this._config, options.configKey) ?? ''}
+        .value=${genericGetProperty(this._config, options.configKey)}
         .disabled=${options.disabled}
         @value-changed="${e => {
           this.updateConfigByKey(options.configKey, e.detail.value);
@@ -144,17 +144,17 @@ export class NavbarCardEditor extends LitElement {
   }) {
     return html`
       <div class="template-editor-container">
-        <div class="template-editor-label-row">
-          <label class="template-editor-label">${options.label}</label>
-          <span class="template-editor-helper"
-            ><a
-              href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#jstemplate"
-              target="_blank"
-              rel="noopener">
-              JS Template: </a
-            >insert valid Javascript code without [[[ ]]]</span
+        <label class="editor-label">${options.label}</label>
+        <ha-alert alert-type="info" title="JSTemplate field">
+          Insert valid Javascript code without [[[ ]]].
+          <a
+            href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#jstemplate"
+            target="_blank"
+            rel="noopener"
+            >See documentation</a
           >
-        </div>
+          for more info.
+        </ha-alert>
         <ha-code-editor
           mode="yaml"
           autofocus
@@ -189,7 +189,7 @@ export class NavbarCardEditor extends LitElement {
           <ha-alert alert-type="info" title="Custom CSS Styles">
             Use this section to change the appearance of
             <code>navbar-card</code>.<br />
-            Enter your CSS here (no <code>styles: |</code> prefix needed).<br />
+            Enter your CSS here (no <code>"styles: |"</code> prefix needed).<br />
             <a
               href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#styles"
               target="_blank"
@@ -283,6 +283,10 @@ export class NavbarCardEditor extends LitElement {
               { label: 'Routes only', value: 'routes_only' },
             ],
             configKey: 'mobile.show_labels',
+          })}
+          ${this.makeTemplateEditor({
+            label: 'Hidden',
+            configKey: 'mobile.hidden',
           })}
         </div>
       </ha-expansion-panel>

@@ -73,11 +73,11 @@ export type NavbarCardConfig = {
     show_labels?: LabelVisibilityConfig;
     min_width?: number;
     position?: DesktopPosition;
-    hidden?: TemplatableBoolean; // TODO JLAQ
+    hidden?: TemplatableBoolean;
   };
   mobile?: {
     show_labels?: LabelVisibilityConfig;
-    hidden?: TemplatableBoolean; // TODO JLAQ
+    hidden?: TemplatableBoolean;
   };
   styles?: string;
   haptic?: boolean | HapticConfig; // TODO JLAQ
