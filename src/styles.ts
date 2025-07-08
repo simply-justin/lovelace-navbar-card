@@ -314,7 +314,7 @@ const EDITOR_STYLES = css`
   .editor-section {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 1em;
     padding: 12px;
   }
   .editor-row {
@@ -419,7 +419,6 @@ export const ROUTES_EDITOR_DND_STYLES = css`
   .draggable-route {
     border: 1.5px dashed transparent;
     border-radius: 8px;
-    margin-bottom: 12px;
     transition:
       border-color 0.2s,
       background 0.2s;
