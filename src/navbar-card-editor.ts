@@ -97,6 +97,8 @@ export class NavbarCardEditor extends LitElement {
     suffix?: string;
     prefixIcon?: string;
     tooltip?: string;
+    helper?: string;
+    helperPersistent?: boolean;
     placeholder?: string;
   }) {
     return html`
@@ -105,6 +107,8 @@ export class NavbarCardEditor extends LitElement {
           ? this.makeHelpTooltipIcon({ tooltip: options.tooltip })
           : ''}
         <ha-textfield
+          helper=${options.helper}
+          helperPersistent=${options.helperPersistent}
           suffix=${options.suffix}
           label=${options.label}
           type=${options.type}
@@ -299,8 +303,7 @@ export class NavbarCardEditor extends LitElement {
                 configKey: 'desktop.min_width',
                 type: 'number',
                 suffix: 'px',
-                tooltip:
-                  'Minimum screen width (in pixels) for desktop mode to be active.',
+                helper: 'Min screen width for desktop mode to be active.',
               })}
             </div>
           </div>
