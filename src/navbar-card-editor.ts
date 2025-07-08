@@ -372,12 +372,12 @@ export class NavbarCardEditor extends LitElement {
     const onDrop = (e: DragEvent, dropIndex: number) => {
       e.preventDefault();
       const dragIndex = Number(e.dataTransfer?.getData('text/plain'));
+      (e.currentTarget as HTMLElement).classList.remove('drag-over');
       if (dragIndex === dropIndex || isNaN(dragIndex)) return;
       const routes = [...this._config.routes];
       const [moved] = routes.splice(dragIndex, 1);
       routes.splice(dropIndex, 0, moved);
       this.updateConfig({ routes });
-      (e.currentTarget as HTMLElement).classList.remove('drag-over');
     };
     return html`
       <ha-expansion-panel outlined>
@@ -391,14 +391,16 @@ export class NavbarCardEditor extends LitElement {
               return html`
                 <div
                   class="draggable-route"
-                  draggable="true"
-                  @dragstart=${(e: DragEvent) => onDragStart(e, i)}
-                  @dragend=${onDragEnd}
                   @dragover=${onDragOver}
                   @dragleave=${onDragLeave}
                   @drop=${(e: DragEvent) => onDrop(e, i)}>
                   <ha-expansion-panel outlined>
-                    <div slot="header" class="route-header">
+                    <div
+                      slot="header"
+                      class="route-header"
+                      draggable="true"
+                      @dragstart=${(e: DragEvent) => onDragStart(e, i)}
+                      @dragend=${onDragEnd}>
                       <span class="drag-handle" title="Drag to reorder">
                         <ha-icon icon="mdi:drag"></ha-icon>
                       </span>
