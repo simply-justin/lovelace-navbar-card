@@ -310,6 +310,10 @@ const EDITOR_STYLES = css`
     display: flex;
     flex-direction: column;
     gap: 6px;
+
+    ha-textfield {
+      width: 100%;
+    }
   }
   .editor-section {
     display: flex;
@@ -389,10 +393,6 @@ const EDITOR_STYLES = css`
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1em;
-
-    ha-textfield {
-      width: 100%;
-    }
   }
   .route-divider {
     margin: 1.5em 0 1em 0;
