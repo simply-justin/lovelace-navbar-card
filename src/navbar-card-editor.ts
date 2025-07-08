@@ -386,234 +386,240 @@ export class NavbarCardEditor extends LitElement {
           Routes
         </h4>
         <div class="editor-section">
-          ${this._config.routes.map((route, i) => {
-            return html`
-              <div
-                class="draggable-route"
-                draggable="true"
-                @dragstart=${(e: DragEvent) => onDragStart(e, i)}
-                @dragend=${onDragEnd}
-                @dragover=${onDragOver}
-                @dragleave=${onDragLeave}
-                @drop=${(e: DragEvent) => onDrop(e, i)}>
-                <ha-expansion-panel outlined>
-                  <div slot="header" class="route-header">
-                    <span class="drag-handle" title="Drag to reorder">
-                      <ha-icon icon="mdi:drag"></ha-icon>
-                    </span>
-                    <div class="route-header-title">Route</div>
-                    <span class="route-header-summary">
-                      ${route.image != undefined
-                        ? html`<img
-                            src="${route.image}"
-                            class="route-header-image" />`
-                        : html`<ha-icon icon="${route.icon}"></ha-icon>`}
-                      ${route.label ?? ''}
-                    </span>
-                    <ha-button
-                      @click=${() => this.removeRoute(i)}
-                      class="delete-route-btn"
-                      title="Delete route">
-                      <ha-icon icon="mdi:delete"></ha-icon>
-                    </ha-button>
-                  </div>
-                  <div class="route-editor route-editor-bg">
-                    <div class="route-grid">
-                      ${this.makeTextInput({
-                        label: 'Label',
-                        configKey: `routes.${i}.label` as any,
-                      })}
-                      ${this.makeTextInput({
-                        label: 'URL',
-                        configKey: `routes.${i}.url` as any,
-                        type: 'url',
-                        placeholder: '/path/to/your/dashboard',
-                      })}
+          <div class="routes-container">
+            ${this._config.routes.map((route, i) => {
+              return html`
+                <div
+                  class="draggable-route"
+                  draggable="true"
+                  @dragstart=${(e: DragEvent) => onDragStart(e, i)}
+                  @dragend=${onDragEnd}
+                  @dragover=${onDragOver}
+                  @dragleave=${onDragLeave}
+                  @drop=${(e: DragEvent) => onDrop(e, i)}>
+                  <ha-expansion-panel outlined>
+                    <div slot="header" class="route-header">
+                      <span class="drag-handle" title="Drag to reorder">
+                        <ha-icon icon="mdi:drag"></ha-icon>
+                      </span>
+                      <div class="route-header-title">Route</div>
+                      <span class="route-header-summary">
+                        ${route.image != undefined
+                          ? html`<img
+                              src="${route.image}"
+                              class="route-header-image" />`
+                          : html`<ha-icon icon="${route.icon}"></ha-icon>`}
+                        ${route.label ?? ''}
+                      </span>
+                      <ha-icon-button
+                        @click=${e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          this.removeRoute(i);
+                        }}
+                        class="delete-route-btn"
+                        label="Delete route">
+                        <ha-icon icon="mdi:delete"></ha-icon
+                      ></ha-icon-button>
                     </div>
-                    <div>
-                      <label class="editor-label">Route icon</label>
-                      <div class="route-grid">
-                        ${this.makeIconPicker({
-                          label: 'Icon',
-                          configKey: `routes.${i}.icon` as any,
-                          // TODO JLAQ disabled: iconOrImage !== 'icon',
-                        })}
-                        ${this.makeIconPicker({
-                          label: 'Icon selected',
-                          configKey: `routes.${i}.icon_selected` as any,
-                          // TODO JLAQ disabled: iconOrImage !== 'icon',
-                        })}
-                      </div>
-                    </div>
-                    <div>
-                      <label class="editor-label">Route image</label>
+                    <div class="route-editor route-editor-bg">
                       <div class="route-grid">
                         ${this.makeTextInput({
-                          label: 'Image',
-                          configKey: `routes.${i}.image` as any,
-                          placeholder: 'URL of the image',
+                          label: 'Label',
+                          configKey: `routes.${i}.label` as any,
                         })}
                         ${this.makeTextInput({
-                          label: 'Image selected',
-                          configKey: `routes.${i}.image_selected` as any,
-                          placeholder: 'URL of the image',
+                          label: 'URL',
+                          configKey: `routes.${i}.url` as any,
+                          type: 'url',
+                          placeholder: '/path/to/your/dashboard',
                         })}
                       </div>
-                    </div>
-                    <div class="route-divider"></div>
-                    <ha-expansion-panel outlined>
-                      <h5 slot="header">
-                        <ha-icon icon="mdi:cog"></ha-icon>
-                        Advanced features
-                      </h5>
-                      <div class="editor-section">
-                        ${this.makeTemplateEditor({
-                          label: 'Hidden',
-                          configKey: `routes.${i}.hidden` as any,
-                        })}
-                        ${this.makeTemplateEditor({
-                          label: 'Selected',
-                          configKey: `routes.${i}.selected` as any,
-                        })}
-                      </div>
-                    </ha-expansion-panel>
-                    <ha-expansion-panel outlined>
-                      <h5 slot="header">
-                        <ha-icon icon="mdi:star-circle-outline"></ha-icon>
-                        Badge
-                      </h5>
-                      <div class="editor-section">
-                        ${this.makeTextInput({
-                          label: 'Show',
-                          configKey: `routes.${i}.badge.show` as any,
-                        })}
-                        ${this.makeTextInput({
-                          label: 'Template',
-                          configKey: `routes.${i}.badge.template` as any,
-                        })}
-                        ${this.makeTextInput({
-                          label: 'Color',
-                          configKey: `routes.${i}.badge.color` as any,
-                        })}
-                      </div>
-                    </ha-expansion-panel>
-                    <ha-expansion-panel outlined>
-                      <h5 slot="header">
-                        <ha-icon icon="mdi:menu"></ha-icon>
-                        Popup/Submenu
-                      </h5>
-                      <div class="editor-section">
-                        ${(route.popup || []).map((popup, j) => {
-                          const popupIconOrImage = popup.image
-                            ? 'image'
-                            : 'icon';
-                          const popupIconInput = this.makeTextInput({
+                      <div>
+                        <label class="editor-label">Route icon</label>
+                        <div class="route-grid">
+                          ${this.makeIconPicker({
                             label: 'Icon',
-                            configKey: `routes.${i}.popup.${j}.icon` as any,
-                            disabled: popupIconOrImage !== 'icon',
-                            autocomplete: 'on',
-                          });
-                          const popupImageInput = this.makeTextInput({
-                            label: 'Image',
-                            configKey: `routes.${i}.popup.${j}.image` as any,
-                            disabled: popupIconOrImage !== 'image',
-                          });
-                          const popupLabelInput = this.makeTextInput({
-                            label: 'Label',
-                            configKey: `routes.${i}.popup.${j}.label` as any,
-                          });
-                          const popupUrlInput = this.makeTextInput({
-                            label: 'URL',
-                            configKey: `routes.${i}.popup.${j}.url` as any,
-                            type: 'url',
-                          });
-                          const popupHiddenInput = this.makeTextInput({
-                            label: 'Hidden',
-                            configKey: `routes.${i}.popup.${j}.hidden` as any,
-                          });
-                          return html`
-                            <ha-expansion-panel outlined>
-                              <h6 slot="header">
-                                <ha-icon
-                                  icon="mdi:subdirectory-arrow-right"></ha-icon>
-                                Popup Item ${j + 1}
-                              </h6>
-                              <div class="popup-editor">
-                                <div class="popup-controls">
-                                  <ha-button
-                                    @click=${() => this.movePopup(i, j, -1)}
-                                    outlined
-                                    ?disabled=${j === 0}>
-                                    <ha-icon icon="mdi:arrow-up"></ha-icon>
-                                  </ha-button>
-                                  <ha-button
-                                    @click=${() => this.movePopup(i, j, 1)}
-                                    outlined
-                                    ?disabled=${j ===
-                                    (route.popup?.length || 1) - 1}>
-                                    <ha-icon icon="mdi:arrow-down"></ha-icon>
-                                  </ha-button>
-                                  <ha-button
-                                    @click=${() => this.removePopup(i, j)}
-                                    outlined>
-                                    <ha-icon icon="mdi:delete"></ha-icon>
-                                  </ha-button>
-                                </div>
-                                <div class="route-grid">
-                                  <div>${popupIconInput}</div>
-                                  <div>${popupImageInput}</div>
-                                </div>
-                                <div class="route-grid">
-                                  <div>${popupLabelInput}</div>
-                                  <div>${popupUrlInput}</div>
-                                </div>
-                                <div class="route-grid">
-                                  <div>${popupHiddenInput}</div>
-                                </div>
-                                <div class="route-divider"></div>
-                                <ha-expansion-panel outlined>
-                                  <h6 slot="header">
-                                    <ha-icon
-                                      icon="mdi:star-circle-outline"></ha-icon>
-                                    Badge
-                                  </h6>
-                                  <div class="editor-section">
-                                    ${this.makeTextInput({
-                                      label: 'Show',
-                                      configKey:
-                                        `routes.${i}.popup.${j}.badge.show` as any,
-                                    })}
-                                    ${this.makeTextInput({
-                                      label: 'Template',
-                                      configKey:
-                                        `routes.${i}.popup.${j}.badge.template` as any,
-                                    })}
-                                    ${this.makeTextInput({
-                                      label: 'Color',
-                                      configKey:
-                                        `routes.${i}.popup.${j}.badge.color` as any,
-                                    })}
-                                  </div>
-                                </ha-expansion-panel>
-                              </div>
-                            </ha-expansion-panel>
-                          `;
-                        })}
-                        <ha-button
-                          @click=${() => this.addPopup(i)}
-                          outlined
-                          class="add-popup-btn">
-                          <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add Popup
-                          Item
-                        </ha-button>
+                            configKey: `routes.${i}.icon` as any,
+                            // TODO JLAQ disabled: iconOrImage !== 'icon',
+                          })}
+                          ${this.makeIconPicker({
+                            label: 'Icon selected',
+                            configKey: `routes.${i}.icon_selected` as any,
+                            // TODO JLAQ disabled: iconOrImage !== 'icon',
+                          })}
+                        </div>
                       </div>
-                    </ha-expansion-panel>
-                  </div>
-                </ha-expansion-panel>
-              </div>
-            `;
-          })}
-          <ha-button @click=${this.addRoute} outlined class="add-route-btn">
+                      <div>
+                        <label class="editor-label">Route image</label>
+                        <div class="route-grid">
+                          ${this.makeTextInput({
+                            label: 'Image',
+                            configKey: `routes.${i}.image` as any,
+                            placeholder: 'URL of the image',
+                          })}
+                          ${this.makeTextInput({
+                            label: 'Image selected',
+                            configKey: `routes.${i}.image_selected` as any,
+                            placeholder: 'URL of the image',
+                          })}
+                        </div>
+                      </div>
+                      <div class="route-divider"></div>
+                      <ha-expansion-panel outlined>
+                        <h5 slot="header">
+                          <ha-icon icon="mdi:cog"></ha-icon>
+                          Advanced features
+                        </h5>
+                        <div class="editor-section">
+                          ${this.makeTemplateEditor({
+                            label: 'Hidden',
+                            configKey: `routes.${i}.hidden` as any,
+                          })}
+                          ${this.makeTemplateEditor({
+                            label: 'Selected',
+                            configKey: `routes.${i}.selected` as any,
+                          })}
+                        </div>
+                      </ha-expansion-panel>
+                      <ha-expansion-panel outlined>
+                        <h5 slot="header">
+                          <ha-icon icon="mdi:star-circle-outline"></ha-icon>
+                          Badge
+                        </h5>
+                        <div class="editor-section">
+                          ${this.makeTextInput({
+                            label: 'Show',
+                            configKey: `routes.${i}.badge.show` as any,
+                          })}
+                          ${this.makeTextInput({
+                            label: 'Template',
+                            configKey: `routes.${i}.badge.template` as any,
+                          })}
+                          ${this.makeTextInput({
+                            label: 'Color',
+                            configKey: `routes.${i}.badge.color` as any,
+                          })}
+                        </div>
+                      </ha-expansion-panel>
+                      <ha-expansion-panel outlined>
+                        <h5 slot="header">
+                          <ha-icon icon="mdi:menu"></ha-icon>
+                          Popup/Submenu
+                        </h5>
+                        <div class="editor-section">
+                          ${(route.popup || []).map((popup, j) => {
+                            const popupIconOrImage = popup.image
+                              ? 'image'
+                              : 'icon';
+                            const popupIconInput = this.makeTextInput({
+                              label: 'Icon',
+                              configKey: `routes.${i}.popup.${j}.icon` as any,
+                              disabled: popupIconOrImage !== 'icon',
+                              autocomplete: 'on',
+                            });
+                            const popupImageInput = this.makeTextInput({
+                              label: 'Image',
+                              configKey: `routes.${i}.popup.${j}.image` as any,
+                              disabled: popupIconOrImage !== 'image',
+                            });
+                            const popupLabelInput = this.makeTextInput({
+                              label: 'Label',
+                              configKey: `routes.${i}.popup.${j}.label` as any,
+                            });
+                            const popupUrlInput = this.makeTextInput({
+                              label: 'URL',
+                              configKey: `routes.${i}.popup.${j}.url` as any,
+                              type: 'url',
+                            });
+                            const popupHiddenInput = this.makeTextInput({
+                              label: 'Hidden',
+                              configKey: `routes.${i}.popup.${j}.hidden` as any,
+                            });
+                            return html`
+                              <ha-expansion-panel outlined>
+                                <h6 slot="header">
+                                  <ha-icon
+                                    icon="mdi:subdirectory-arrow-right"></ha-icon>
+                                  Popup Item ${j + 1}
+                                </h6>
+                                <div class="popup-editor">
+                                  <div class="popup-controls">
+                                    <ha-button
+                                      @click=${() => this.movePopup(i, j, -1)}
+                                      outlined
+                                      ?disabled=${j === 0}>
+                                      <ha-icon icon="mdi:arrow-up"></ha-icon>
+                                    </ha-button>
+                                    <ha-button
+                                      @click=${() => this.movePopup(i, j, 1)}
+                                      outlined
+                                      ?disabled=${j ===
+                                      (route.popup?.length || 1) - 1}>
+                                      <ha-icon icon="mdi:arrow-down"></ha-icon>
+                                    </ha-button>
+                                    <ha-button
+                                      @click=${() => this.removePopup(i, j)}
+                                      outlined>
+                                      <ha-icon icon="mdi:delete"></ha-icon>
+                                    </ha-button>
+                                  </div>
+                                  <div class="route-grid">
+                                    <div>${popupIconInput}</div>
+                                    <div>${popupImageInput}</div>
+                                  </div>
+                                  <div class="route-grid">
+                                    <div>${popupLabelInput}</div>
+                                    <div>${popupUrlInput}</div>
+                                  </div>
+                                  <div class="route-grid">
+                                    <div>${popupHiddenInput}</div>
+                                  </div>
+                                  <div class="route-divider"></div>
+                                  <ha-expansion-panel outlined>
+                                    <h6 slot="header">
+                                      <ha-icon
+                                        icon="mdi:star-circle-outline"></ha-icon>
+                                      Badge
+                                    </h6>
+                                    <div class="editor-section">
+                                      ${this.makeTextInput({
+                                        label: 'Show',
+                                        configKey:
+                                          `routes.${i}.popup.${j}.badge.show` as any,
+                                      })}
+                                      ${this.makeTextInput({
+                                        label: 'Template',
+                                        configKey:
+                                          `routes.${i}.popup.${j}.badge.template` as any,
+                                      })}
+                                      ${this.makeTextInput({
+                                        label: 'Color',
+                                        configKey:
+                                          `routes.${i}.popup.${j}.badge.color` as any,
+                                      })}
+                                    </div>
+                                  </ha-expansion-panel>
+                                </div>
+                              </ha-expansion-panel>
+                            `;
+                          })}
+                          <ha-button
+                            @click=${() => this.addPopup(i)}
+                            outlined
+                            class="add-popup-btn">
+                            <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add Popup
+                            Item
+                          </ha-button>
+                        </div>
+                      </ha-expansion-panel>
+                    </div>
+                  </ha-expansion-panel>
+                </div>
+              `;
+            })}
+          </div>
+          <ha-button @click=${this.addRoute} outlined>
             <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add Route
           </ha-button>
         </div>

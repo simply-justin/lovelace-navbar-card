@@ -309,7 +309,7 @@ const EDITOR_STYLES = css`
   .navbar-editor {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
   }
   .editor-section {
     display: flex;
@@ -343,6 +343,11 @@ const EDITOR_STYLES = css`
   }
   .editor-label {
     font-weight: 500;
+  }
+  .routes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
   }
   .route-header {
     display: flex;
@@ -396,9 +401,6 @@ const EDITOR_STYLES = css`
     height: 1px;
     background: none;
   }
-  .add-route-btn {
-    margin-top: 1.5em;
-  }
   .add-popup-btn {
     margin-top: 1em;
   }
@@ -441,19 +443,6 @@ export const ROUTES_EDITOR_DND_STYLES = css`
     vertical-align: middle;
     display: inline-flex;
     align-items: center;
-  }
-  .delete-route-btn {
-    --mdc-theme-primary: var(--error-color, #db4437);
-    color: var(--error-color, #db4437) !important;
-    background: none !important;
-    border: none;
-    box-shadow: none;
-    padding: 0 4px;
-    min-width: 32px;
-    min-height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
   .delete-route-btn ha-icon {
     color: var(--error-color, #db4437) !important;
