@@ -308,7 +308,7 @@ export class NavbarCardEditor extends LitElement {
           <ha-alert alert-type="info" title="Custom CSS Styles">
             Use this section to change the appearance of
             <code>navbar-card</code>.<br />
-            Enter your CSS here (no <code>"styles: |"</code> prefix needed).<br />
+            Enter your CSS code here (no <code>"styles: |"</code> prefix needed).<br />
             <a
               href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#styles"
               target="_blank"
@@ -599,16 +599,15 @@ export class NavbarCardEditor extends LitElement {
                         </h5>
                         <div class="editor-section">
                           ${this.makeTextInput({
-                            label: 'Show',
-                            configKey: `routes.${i}.badge.show` as any,
-                          })}
-                          ${this.makeTextInput({
-                            label: 'Template',
-                            configKey: `routes.${i}.badge.template` as any,
-                          })}
-                          ${this.makeTextInput({
                             label: 'Color',
                             configKey: `routes.${i}.badge.color` as any,
+                            helper:
+                              'Color of the badge in any CSS valid format (red, #ff0000, rgba(255,0,0,1)...)',
+                          })}
+                          ${this.makeTemplateEditor({
+                            label: 'Show',
+                            configKey: `routes.${i}.badge.show` as any,
+                            helper: BOOLEAN_JS_TEMPLATE_HELPER,
                           })}
                         </div>
                       </ha-expansion-panel>
