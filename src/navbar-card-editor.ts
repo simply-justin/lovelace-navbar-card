@@ -7,6 +7,8 @@ import {
   ExtendedActionConfig,
   LabelVisibilityConfig,
   NavbarCardConfig,
+  PopupItem,
+  RouteItem,
 } from './config';
 import {
   DeepPartial,
@@ -68,7 +70,7 @@ export class NavbarCardEditor extends LitElement {
     );
   }
 
-  // TODO JLAQ change the type of "value"
+  // TODO change the type of "value"
   updateConfigByKey(
     key: DotNotationKeys<NavbarCardConfig>,
     value: NestedType<NavbarCardConfig, DotNotationKeys<NavbarCardConfig>>,
@@ -93,7 +95,7 @@ export class NavbarCardEditor extends LitElement {
 
   makeComboBox<T>(options: {
     label: string;
-    // TODO JLAQ this type T should be replaced with the value of the key in the config
+    // TODO this type T should be replaced with the value of the key in the config
     items: { label: string; value: T }[];
     configKey: DotNotationKeys<NavbarCardConfig>;
     disabled?: boolean;
@@ -160,7 +162,7 @@ export class NavbarCardEditor extends LitElement {
     return html`
       <ha-icon-picker
         label=${options.label}
-        .value=${genericGetProperty(this._config, options.configKey)}
+        .value=${genericGetProperty(this._config, options.configKey) ?? ''}
         .disabled=${options.disabled}
         @value-changed="${e => {
           this.updateConfigByKey(options.configKey, e.detail.value);
@@ -292,6 +294,274 @@ export class NavbarCardEditor extends LitElement {
           ? this.makeHelpTooltipIcon({ tooltip: options.tooltip })
           : ''}
         <label>${options.label}</label>
+      </div>
+    `;
+  }
+
+  makeButton(options: {
+    onClick: (e: MouseEvent) => void;
+    icon: string;
+    text: string;
+  }) {
+    return html`<ha-button @click=${options.onClick} outlined hasTrailingIcon>
+      <ha-icon icon=${options.icon}></ha-icon>&nbsp;${options.text}
+    </ha-button>`;
+  }
+
+  makeDraggableRouteEditor(
+    item: RouteItem | PopupItem,
+    routeIndex: number,
+    popupIndex?: number,
+  ) {
+    const isPopup = popupIndex != null;
+
+    const baseConfigKey = isPopup
+      ? `routes.${routeIndex}.popup.${popupIndex}`
+      : `routes.${routeIndex}`;
+
+    const onDragStart = (
+      e: DragEvent,
+      routeIndex: number,
+      popupIndex?: number,
+    ) => {
+      const dragData = {
+        routeIndex,
+        popupIndex,
+      };
+      e.dataTransfer?.setData('application/json', JSON.stringify(dragData));
+      e.dataTransfer!.effectAllowed = 'move';
+      (e.currentTarget as HTMLElement).classList.add('dragging');
+    };
+    const onDragEnd = (e: DragEvent) => {
+      (e.currentTarget as HTMLElement).classList.remove('dragging');
+    };
+    const onDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer!.dropEffect = 'move';
+      (e.currentTarget as HTMLElement).classList.add('drag-over');
+    };
+    const onDragLeave = (e: DragEvent) => {
+      (e.currentTarget as HTMLElement).classList.remove('drag-over');
+    };
+    const onDrop = (e: DragEvent, routeIndex: number, popupIndex?: number) => {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).classList.remove('drag-over');
+      const dragData = JSON.parse(
+        e.dataTransfer?.getData('application/json') || '{}',
+      );
+
+      // Prevent cross dropping elements
+      if ((dragData.popupIndex != null) !== (popupIndex != null)) return;
+
+      if (popupIndex == null) {
+        if (dragData.routeIndex === routeIndex) return;
+        const routes = [...this._config.routes];
+        const [moved] = routes.splice(dragData.routeIndex, 1);
+        routes.splice(routeIndex, 0, moved);
+        this.updateConfig({ routes });
+      } else if (
+        // Make sure we are dropping the popup item inside the same route it was dragged from
+        typeof popupIndex === 'number' &&
+        typeof dragData.popupIndex === 'number' &&
+        dragData.routeIndex === routeIndex
+      ) {
+        if (dragData.popupIndex === popupIndex) return;
+        const routes = [...this._config.routes];
+        const popups = [...(routes[routeIndex].popup || [])];
+        const [moved] = popups.splice(dragData.popupIndex, 1);
+        popups.splice(popupIndex, 0, moved);
+        routes[routeIndex] = { ...routes[routeIndex], popup: popups };
+        this.updateConfig({ routes });
+      }
+    };
+
+    return html`
+      <div
+        class="draggable-route"
+        @dragover=${onDragOver}
+        @dragleave=${onDragLeave}
+        @drop=${(e: DragEvent) => onDrop(e, routeIndex, popupIndex)}>
+        <ha-expansion-panel outlined>
+          <div
+            slot="header"
+            class="route-header"
+            draggable="true"
+            @dragstart=${(e: DragEvent) =>
+              onDragStart(e, routeIndex, popupIndex)}
+            @dragend=${onDragEnd}>
+            <span class="drag-handle" title="Drag to reorder">
+              <ha-icon icon="mdi:drag"></ha-icon>
+            </span>
+
+            <div class="route-header-title">
+              ${isPopup ? 'Popup item' : 'Route'}
+            </div>
+
+            <span class="route-header-summary">
+              ${item.image != undefined
+                ? html`<img src="${item.image}" class="route-header-image" />`
+                : html`<ha-icon icon="${item.icon}"></ha-icon>`}
+              ${item.label ? processTemplate(this.hass, item.label) : ''}
+            </span>
+
+            <ha-icon-button
+              @click=${e => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.removeRouteOrPopup(routeIndex, popupIndex);
+              }}
+              class="delete-btn"
+              label=${isPopup ? 'Delete popup' : 'Delete route'}>
+              <ha-icon icon="mdi:delete"></ha-icon
+            ></ha-icon-button>
+          </div>
+
+          <div class="route-editor route-editor-bg">
+            <div class="editor-row">
+              <div class="editor-row-item">
+                ${this.makeTextInput({
+                  label: 'URL',
+                  configKey: `${baseConfigKey}.url` as any,
+                  type: 'text',
+                  placeholder: '/path/to/your/dashboard',
+                })}
+              </div>
+            </div>
+
+            ${this.makeStringOrTemplateEditor({
+              label: 'Label',
+              configKey: `${baseConfigKey}.label` as any,
+              templateHelper: STRING_JS_TEMPLATE_HELPER,
+            })}
+
+            <div>
+              <label class="editor-label">Route icon</label>
+              <div class="route-grid">
+                ${this.makeIconPicker({
+                  label: 'Icon',
+                  configKey: `${baseConfigKey}.icon` as any,
+                })}
+                ${this.makeIconPicker({
+                  label: 'Icon selected',
+                  configKey: `${baseConfigKey}.icon_selected` as any,
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label class="editor-label">Route image</label>
+              <div class="route-grid">
+                ${this.makeTextInput({
+                  label: 'Image',
+                  configKey: `${baseConfigKey}.image` as any,
+                  placeholder: 'URL of the image',
+                })}
+                ${this.makeTextInput({
+                  label: 'Image selected',
+                  configKey: `${baseConfigKey}.image_selected` as any,
+                  placeholder: 'URL of the image',
+                })}
+              </div>
+            </div>
+
+            <div class="route-divider"></div>
+
+            <ha-expansion-panel outlined>
+              <h5 slot="header">
+                <ha-icon icon="mdi:star-circle-outline"></ha-icon>
+                Badge
+              </h5>
+              <div class="editor-section">
+                ${this.makeTextInput({
+                  label: 'Color',
+                  configKey: `${baseConfigKey}.badge.color` as any,
+                  helper:
+                    'Color of the badge in any CSS valid format (red, #ff0000, rgba(255,0,0,1)...)',
+                })}
+                ${this.makeTemplateEditor({
+                  label: 'Show',
+                  configKey: `${baseConfigKey}.badge.show` as any,
+                  helper: BOOLEAN_JS_TEMPLATE_HELPER,
+                })}
+              </div>
+            </ha-expansion-panel>
+
+            ${!isPopup
+              ? html`
+                  <ha-expansion-panel outlined>
+                    <h5 slot="header">
+                      <ha-icon icon="mdi:menu"></ha-icon>
+                      Popup/Submenu
+                    </h5>
+                    <div class="editor-section">
+                      <div class="routes-container">
+                        ${((item as RouteItem).popup ?? []).map(
+                          (popupItem, index) => {
+                            return this.makeDraggableRouteEditor(
+                              popupItem,
+                              routeIndex,
+                              index,
+                            );
+                          },
+                        )}
+                      </div>
+                      ${this.makeButton({
+                        text: 'Add Popup item',
+                        icon: 'mdi:plus',
+                        onClick: () => this.addRouteOrPopup(routeIndex),
+                      })}
+                    </div>
+                  </ha-expansion-panel>
+                `
+              : html``}
+
+            <ha-expansion-panel outlined>
+              <h5 slot="header">
+                <ha-icon icon="mdi:cog"></ha-icon>
+                Advanced features
+              </h5>
+              <div class="editor-section">
+                ${this.makeTemplateEditor({
+                  label: 'Hidden',
+                  configKey: `${baseConfigKey}.hidden` as any,
+                  helper: BOOLEAN_JS_TEMPLATE_HELPER,
+                })}
+                ${this.makeTemplateEditor({
+                  label: 'Selected',
+                  configKey: `${baseConfigKey}.selected` as any,
+                  helper: BOOLEAN_JS_TEMPLATE_HELPER,
+                })}
+              </div>
+            </ha-expansion-panel>
+
+            ${Object.values(HAActions).map(type => {
+              const key =
+                `${baseConfigKey}.${type}` as DotNotationKeys<NavbarCardConfig>;
+              const actionValue = genericGetProperty(this._config, key);
+              const label = this._chooseLabelForAction(type as HAActions);
+
+              return html`
+                ${actionValue != null
+                  ? this.makeActionSelector({
+                      actionType: type as HAActions,
+                      configKey: key,
+                    })
+                  : html`
+                      <ha-button
+                        @click=${() =>
+                          this.updateConfigByKey(key, {
+                            action: 'none',
+                          })}
+                        style="margin-bottom: 1em;"
+                        outlined
+                        hasTrailingIcon>
+                        <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add ${label}
+                      </ha-button>
+                    `}
+              `;
+            })}
+          </div>
+        </ha-expansion-panel>
       </div>
     `;
   }
@@ -481,34 +751,6 @@ export class NavbarCardEditor extends LitElement {
   }
 
   renderRoutesEditor() {
-    // Helper to handle drag events
-    const onDragStart = (e: DragEvent, index: number) => {
-      e.dataTransfer?.setData('text/plain', index.toString());
-      e.dataTransfer!.effectAllowed = 'move';
-      // Add dragging class for visual feedback
-      (e.currentTarget as HTMLElement).classList.add('dragging');
-    };
-    const onDragEnd = (e: DragEvent) => {
-      (e.currentTarget as HTMLElement).classList.remove('dragging');
-    };
-    const onDragOver = (e: DragEvent) => {
-      e.preventDefault();
-      e.dataTransfer!.dropEffect = 'move';
-      (e.currentTarget as HTMLElement).classList.add('drag-over');
-    };
-    const onDragLeave = (e: DragEvent) => {
-      (e.currentTarget as HTMLElement).classList.remove('drag-over');
-    };
-    const onDrop = (e: DragEvent, dropIndex: number) => {
-      e.preventDefault();
-      const dragIndex = Number(e.dataTransfer?.getData('text/plain'));
-      (e.currentTarget as HTMLElement).classList.remove('drag-over');
-      if (dragIndex === dropIndex || isNaN(dragIndex)) return;
-      const routes = [...this._config.routes];
-      const [moved] = routes.splice(dragIndex, 1);
-      routes.splice(dropIndex, 0, moved);
-      this.updateConfig({ routes });
-    };
     return html`
       <ha-expansion-panel outlined>
         <h4 slot="header">
@@ -518,280 +760,14 @@ export class NavbarCardEditor extends LitElement {
         <div class="editor-section">
           <div class="routes-container">
             ${(this._config.routes ?? []).map((route, i) => {
-              return html`
-                <div
-                  class="draggable-route"
-                  @dragover=${onDragOver}
-                  @dragleave=${onDragLeave}
-                  @drop=${(e: DragEvent) => onDrop(e, i)}>
-                  <ha-expansion-panel outlined>
-                    <div
-                      slot="header"
-                      class="route-header"
-                      draggable="true"
-                      @dragstart=${(e: DragEvent) => onDragStart(e, i)}
-                      @dragend=${onDragEnd}>
-                      <span class="drag-handle" title="Drag to reorder">
-                        <ha-icon icon="mdi:drag"></ha-icon>
-                      </span>
-                      <div class="route-header-title">Route</div>
-                      <span class="route-header-summary">
-                        ${route.image != undefined
-                          ? html`<img
-                              src="${route.image}"
-                              class="route-header-image" />`
-                          : html`<ha-icon icon="${route.icon}"></ha-icon>`}
-                        ${route.label
-                          ? processTemplate(this.hass, route.label)
-                          : ''}
-                      </span>
-                      <ha-icon-button
-                        @click=${e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          this.removeRoute(i);
-                        }}
-                        class="delete-btn"
-                        label="Delete route">
-                        <ha-icon icon="mdi:delete"></ha-icon
-                      ></ha-icon-button>
-                    </div>
-                    <div class="route-editor route-editor-bg">
-                      <div class="editor-row">
-                        <div class="editor-row-item">
-                          ${this.makeTextInput({
-                            label: 'URL',
-                            configKey: `routes.${i}.url` as any,
-                            type: 'text',
-                            placeholder: '/path/to/your/dashboard',
-                          })}
-                        </div>
-                      </div>
-                      ${this.makeStringOrTemplateEditor({
-                        label: 'Label',
-                        configKey: `routes.${i}.label` as any,
-                        helper: STRING_JS_TEMPLATE_HELPER,
-                      })}
-                      <div>
-                        <label class="editor-label">Route icon</label>
-                        <div class="route-grid">
-                          ${this.makeIconPicker({
-                            label: 'Icon',
-                            configKey: `routes.${i}.icon` as any,
-                            // TODO JLAQ disabled: iconOrImage !== 'icon',
-                          })}
-                          ${this.makeIconPicker({
-                            label: 'Icon selected',
-                            configKey: `routes.${i}.icon_selected` as any,
-                            // TODO JLAQ disabled: iconOrImage !== 'icon',
-                          })}
-                        </div>
-                      </div>
-                      <div>
-                        <label class="editor-label">Route image</label>
-                        <div class="route-grid">
-                          ${this.makeTextInput({
-                            label: 'Image',
-                            configKey: `routes.${i}.image` as any,
-                            placeholder: 'URL of the image',
-                          })}
-                          ${this.makeTextInput({
-                            label: 'Image selected',
-                            configKey: `routes.${i}.image_selected` as any,
-                            placeholder: 'URL of the image',
-                          })}
-                        </div>
-                      </div>
-                      <div class="route-divider"></div>
-                      <ha-expansion-panel outlined>
-                        <h5 slot="header">
-                          <ha-icon icon="mdi:cog"></ha-icon>
-                          Advanced features
-                        </h5>
-                        <div class="editor-section">
-                          ${this.makeTemplateEditor({
-                            label: 'Hidden',
-                            configKey: `routes.${i}.hidden` as any,
-                            helper: BOOLEAN_JS_TEMPLATE_HELPER,
-                          })}
-                          ${this.makeTemplateEditor({
-                            label: 'Selected',
-                            configKey: `routes.${i}.selected` as any,
-                            helper: BOOLEAN_JS_TEMPLATE_HELPER,
-                          })}
-                        </div>
-                      </ha-expansion-panel>
-                      <ha-expansion-panel outlined>
-                        <h5 slot="header">
-                          <ha-icon icon="mdi:star-circle-outline"></ha-icon>
-                          Badge
-                        </h5>
-                        <div class="editor-section">
-                          ${this.makeTextInput({
-                            label: 'Color',
-                            configKey: `routes.${i}.badge.color` as any,
-                            helper:
-                              'Color of the badge in any CSS valid format (red, #ff0000, rgba(255,0,0,1)...)',
-                          })}
-                          ${this.makeTemplateEditor({
-                            label: 'Show',
-                            configKey: `routes.${i}.badge.show` as any,
-                            helper: BOOLEAN_JS_TEMPLATE_HELPER,
-                          })}
-                        </div>
-                      </ha-expansion-panel>
-                      <ha-expansion-panel outlined>
-                        <h5 slot="header">
-                          <ha-icon icon="mdi:menu"></ha-icon>
-                          Popup/Submenu
-                        </h5>
-                        <div class="editor-section">
-                          ${(route.popup || []).map((popup, j) => {
-                            const popupIconOrImage = popup.image
-                              ? 'image'
-                              : 'icon';
-                            const popupIconInput = this.makeTextInput({
-                              label: 'Icon',
-                              configKey: `routes.${i}.popup.${j}.icon` as any,
-                              disabled: popupIconOrImage !== 'icon',
-                              autocomplete: 'on',
-                            });
-                            const popupImageInput = this.makeTextInput({
-                              label: 'Image',
-                              configKey: `routes.${i}.popup.${j}.image` as any,
-                              disabled: popupIconOrImage !== 'image',
-                            });
-                            const popupLabelInput = this.makeTextInput({
-                              label: 'Label',
-                              configKey: `routes.${i}.popup.${j}.label` as any,
-                            });
-                            const popupUrlInput = this.makeTextInput({
-                              label: 'URL',
-                              configKey: `routes.${i}.popup.${j}.url` as any,
-                              type: 'url',
-                            });
-                            const popupHiddenInput = this.makeTextInput({
-                              label: 'Hidden',
-                              configKey: `routes.${i}.popup.${j}.hidden` as any,
-                            });
-                            return html`
-                              <ha-expansion-panel outlined>
-                                <h6 slot="header">
-                                  <ha-icon
-                                    icon="mdi:subdirectory-arrow-right"></ha-icon>
-                                  Popup Item ${j + 1}
-                                </h6>
-                                <div class="popup-editor">
-                                  <div class="popup-controls">
-                                    <ha-button
-                                      @click=${() => this.movePopup(i, j, -1)}
-                                      outlined
-                                      ?disabled=${j === 0}>
-                                      <ha-icon icon="mdi:arrow-up"></ha-icon>
-                                    </ha-button>
-                                    <ha-button
-                                      @click=${() => this.movePopup(i, j, 1)}
-                                      outlined
-                                      ?disabled=${j ===
-                                      (route.popup?.length || 1) - 1}>
-                                      <ha-icon icon="mdi:arrow-down"></ha-icon>
-                                    </ha-button>
-                                    <ha-button
-                                      @click=${() => this.removePopup(i, j)}
-                                      outlined>
-                                      <ha-icon icon="mdi:delete"></ha-icon>
-                                    </ha-button>
-                                  </div>
-                                  <div class="route-grid">
-                                    <div>${popupIconInput}</div>
-                                    <div>${popupImageInput}</div>
-                                  </div>
-                                  <div class="route-grid">
-                                    <div>${popupLabelInput}</div>
-                                    <div>${popupUrlInput}</div>
-                                  </div>
-                                  <div class="route-grid">
-                                    <div>${popupHiddenInput}</div>
-                                  </div>
-                                  <div class="route-divider"></div>
-                                  <ha-expansion-panel outlined>
-                                    <h6 slot="header">
-                                      <ha-icon
-                                        icon="mdi:star-circle-outline"></ha-icon>
-                                      Badge
-                                    </h6>
-                                    <div class="editor-section">
-                                      ${this.makeTextInput({
-                                        label: 'Show',
-                                        configKey:
-                                          `routes.${i}.popup.${j}.badge.show` as any,
-                                      })}
-                                      ${this.makeTextInput({
-                                        label: 'Template',
-                                        configKey:
-                                          `routes.${i}.popup.${j}.badge.template` as any,
-                                      })}
-                                      ${this.makeTextInput({
-                                        label: 'Color',
-                                        configKey:
-                                          `routes.${i}.popup.${j}.badge.color` as any,
-                                      })}
-                                    </div>
-                                  </ha-expansion-panel>
-                                </div>
-                              </ha-expansion-panel>
-                            `;
-                          })}
-                          <ha-button
-                            @click=${() => this.addPopup(i)}
-                            outlined
-                            class="add-popup-btn">
-                            <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add Popup
-                            Item
-                          </ha-button>
-                        </div>
-                      </ha-expansion-panel>
-                      ${Object.values(HAActions).map(type => {
-                        const key =
-                          `routes.${i}.${type}` as DotNotationKeys<NavbarCardConfig>;
-                        const actionValue = genericGetProperty(
-                          this._config,
-                          key,
-                        );
-                        const label = this._chooseLabelForAction(
-                          type as HAActions,
-                        );
-
-                        return html`
-                          ${actionValue != null
-                            ? this.makeActionSelector({
-                                actionType: type as HAActions,
-                                configKey: key,
-                              })
-                            : html`
-                                <ha-button
-                                  @click=${() =>
-                                    this.updateConfigByKey(key, {
-                                      action: 'none',
-                                    })}
-                                  style="margin-bottom: 1em;"
-                                  outlined
-                                  hasTrailingIcon>
-                                  <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add
-                                  ${label}
-                                </ha-button>
-                              `}
-                        `;
-                      })}
-                    </div>
-                  </ha-expansion-panel>
-                </div>
-              `;
+              return this.makeDraggableRouteEditor(route, i);
             })}
           </div>
-          <ha-button @click=${this.addRoute} outlined hasTrailingIcon>
-            <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add Route
-          </ha-button>
+          ${this.makeButton({
+            text: 'Add Route',
+            icon: 'mdi:plus',
+            onClick: () => this.addRouteOrPopup(),
+          })}
         </div>
       </ha-expansion-panel>
     `;
@@ -926,11 +902,10 @@ export class NavbarCardEditor extends LitElement {
   /* Native methods */
   /**********************************************************************/
   protected render() {
-    // TODO will display an alert when the navbar is using "template" field
-
     return html`
       <div class="navbar-editor">
-        ${this._config.template != undefined
+        ${this._config.template != undefined &&
+        this._config.template?.trim() != ''
           ? html`<ha-alert alert-type="warning"
               >You have the <code>template</code> field configured for
               navbar-card. Using the editor will override the props for
@@ -955,59 +930,38 @@ export class NavbarCardEditor extends LitElement {
 
   static styles = getEditorStyles();
 
-  // Helper methods for route/popup manipulation
-  private addRoute = () => {
-    const routes = [...this._config.routes, { icon: '', label: '', url: '' }];
-    this.updateConfig({ routes });
-  };
-
-  private removeRoute = (index: number) => {
-    const routes = [...this._config.routes];
-    routes.splice(index, 1);
-    if (routes.length == 0) {
-      this.updateConfig({ routes: null });
+  private addRouteOrPopup = (routeIndex?: number) => {
+    let routes = [...(this._config.routes ?? [])];
+    const newItemData = {
+      icon: 'mdi:alert-circle-outline',
+      label: '',
+      url: '',
+    };
+    if (routeIndex == null) {
+      routes = [...routes, newItemData];
     } else {
-      this.updateConfig({ routes });
+      const popup = [...(routes[routeIndex].popup || []), newItemData];
+      routes[routeIndex] = { ...routes[routeIndex], popup };
     }
-  };
 
-  private moveRoute = (index: number, direction: -1 | 1) => {
-    const routes = [...this._config.routes];
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= routes.length) return;
-    [routes[index], routes[newIndex]] = [routes[newIndex], routes[index]];
     this.updateConfig({ routes });
   };
 
-  private addPopup = (routeIndex: number) => {
+  private removeRouteOrPopup = (routeIndex: number, popupIndex?: number) => {
+    if (!this._config.routes || this._config.routes.length == 0) return;
     const routes = [...this._config.routes];
-    const popup = [
-      ...(routes[routeIndex].popup || []),
-      { icon: '', label: '', url: '' },
-    ];
-    routes[routeIndex] = { ...routes[routeIndex], popup };
-    this.updateConfig({ routes });
-  };
 
-  private removePopup = (routeIndex: number, popupIndex: number) => {
-    const routes = [...this._config.routes];
-    const popup = [...(routes[routeIndex].popup || [])];
-    popup.splice(popupIndex, 1);
-    routes[routeIndex] = { ...routes[routeIndex], popup };
-    this.updateConfig({ routes });
-  };
+    if (popupIndex == null) {
+      routes.splice(routeIndex, 1);
+    } else {
+      const popup = [...(routes[routeIndex].popup || [])];
+      popup.splice(popupIndex, 1);
+      routes[routeIndex] = {
+        ...routes[routeIndex],
+        popup: popup.length === 0 ? null : popup,
+      };
+    }
 
-  private movePopup = (
-    routeIndex: number,
-    popupIndex: number,
-    direction: -1 | 1,
-  ) => {
-    const routes = [...this._config.routes];
-    const popup = [...(routes[routeIndex].popup || [])];
-    const newIndex = popupIndex + direction;
-    if (newIndex < 0 || newIndex >= popup.length) return;
-    [popup[popupIndex], popup[newIndex]] = [popup[newIndex], popup[popupIndex]];
-    routes[routeIndex] = { ...routes[routeIndex], popup };
-    this.updateConfig({ routes });
+    this.updateConfig({ routes: routes.length === 0 ? null : routes });
   };
 }
