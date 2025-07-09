@@ -63,16 +63,26 @@ export function genericSetProperty<T, K extends DotNotationKeys<T>>(
   let originalObj: any = obj;
 
   // Iterate through each entry
-  for (const p of paths) {
-    if (typeof originalObj[p] !== 'object' || originalObj[p] === undefined) {
-      throw new Error(`Property '${p}' does not exist`);
+  for (let i = 0; i < paths.length; i++) {
+    const p = paths[i];
+    // If property does not exist or is not an object, create it
+    if (
+      typeof originalObj[p] !== 'object' ||
+      originalObj[p] === undefined ||
+      originalObj[p] === null
+    ) {
+      // Determine if next key is a number (for arrays)
+      const nextKey = paths[i + 1];
+      const isArrayIndex = nextKey !== undefined && !isNaN(Number(nextKey));
+      currentObj[p] = isArrayIndex ? [] : {};
+    } else {
+      // Copy each level
+      currentObj[p] = Array.isArray(originalObj[p])
+        ? [...originalObj[p]]
+        : { ...originalObj[p] };
     }
-    // Copy each level
-    currentObj[p] = Array.isArray(originalObj[p])
-      ? [...originalObj[p]]
-      : { ...originalObj[p] };
     currentObj = currentObj[p];
-    originalObj = originalObj[p];
+    originalObj = originalObj[p] ?? {};
   }
 
   // Return the modified copy

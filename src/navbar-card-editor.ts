@@ -300,6 +300,31 @@ export class NavbarCardEditor extends LitElement {
   /* Editor sections */
   /**********************************************************************/
 
+  renderTemplateEditor() {
+    return html`
+      <ha-expansion-panel outlined>
+        <h4 slot="header">
+          <ha-icon icon="mdi:bookmark-outline"></ha-icon>
+          Template
+        </h4>
+        <div class="editor-section">
+          ${this.makeTextInput({
+            label: 'Template',
+            configKey: 'template',
+            helper: html`Reusable template name used for this card.
+              <a
+                href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#template"
+                target="_blank"
+                rel="noopener"
+                >Check the documentation</a
+              >
+              for more info.`,
+          })}
+        </div></ha-expansion-panel
+      >
+    `;
+  }
+
   renderStylesEditor() {
     return html`
       <ha-expansion-panel outlined>
@@ -492,7 +517,7 @@ export class NavbarCardEditor extends LitElement {
         </h4>
         <div class="editor-section">
           <div class="routes-container">
-            ${this._config.routes.map((route, i) => {
+            ${(this._config.routes ?? []).map((route, i) => {
               return html`
                 <div
                   class="draggable-route"
@@ -902,12 +927,25 @@ export class NavbarCardEditor extends LitElement {
   /**********************************************************************/
   protected render() {
     // TODO will display an alert when the navbar is using "template" field
-    if (false) {
-      return html`<ha-alert alert-type="warning">Cuidado!</ha-alert>`;
-    }
 
     return html`
       <div class="navbar-editor">
+        ${this._config.template != undefined
+          ? html`<ha-alert alert-type="warning"
+              >You have the <code>template</code> field configured for
+              navbar-card. Using the editor will override the props for
+              <strong>this card only</strong>, but will not update the template
+              defined in your dashboard.
+              <br />
+              <a
+                href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#template"
+                target="_blank"
+                rel="noopener"
+                >Check the documentation</a
+              >
+              to know how to configure your navbar-card templates.</ha-alert
+            >`
+          : html``}
         ${this.renderTemplateEditor()} ${this.renderRoutesEditor()}
         ${this.renderDesktopEditor()} ${this.renderMobileEditor()}
         ${this.renderHapticEditor()} ${this.renderStylesEditor()}
@@ -926,7 +964,11 @@ export class NavbarCardEditor extends LitElement {
   private removeRoute = (index: number) => {
     const routes = [...this._config.routes];
     routes.splice(index, 1);
-    this.updateConfig({ routes });
+    if (routes.length == 0) {
+      this.updateConfig({ routes: null });
+    } else {
+      this.updateConfig({ routes });
+    }
   };
 
   private moveRoute = (index: number, direction: -1 | 1) => {
