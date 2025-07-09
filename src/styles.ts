@@ -353,6 +353,24 @@ const EDITOR_STYLES = css`
     flex-direction: column;
     gap: 0.25em;
   }
+  ha-expansion-panel {
+    h4[slot='header'],
+    h5[slot='header'],
+    h6[slot='header'] {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.7em;
+      padding: 0.2em 0.5em 0.2em 0;
+      height: 40px;
+      margin: 0px !important;
+      margin-left: 1em;
+
+      .expansion-panel-title {
+        flex: 1;
+      }
+    }
+  }
   .route-header {
     display: flex;
     align-items: center;
@@ -379,7 +397,7 @@ const EDITOR_STYLES = css`
     display: flex;
     flex-direction: column;
     gap: 1em;
-    background: var(--ha-card-background, #f7f7fa);
+    background: var(--primary-background-color);
     border-radius: 8px;
     padding: 1em 1.2em 1.2em 1.2em;
     margin: 1em 0em;
@@ -444,7 +462,7 @@ export const ROUTES_EDITOR_DND_STYLES = css`
     display: inline-flex;
     align-items: center;
   }
-  .delete-route-btn ha-icon {
+  .delete-btn ha-icon {
     color: var(--error-color, #db4437) !important;
   }
 `;

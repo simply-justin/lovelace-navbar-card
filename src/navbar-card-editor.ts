@@ -4,6 +4,7 @@ import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   DesktopPosition,
+  ExtendedActionConfig,
   LabelVisibilityConfig,
   NavbarCardConfig,
 } from './config';
@@ -23,9 +24,9 @@ import {
 import { getEditorStyles } from './styles';
 
 enum HAActions {
-  tap_action,
-  hold_action,
-  double_tap_action,
+  tap_action = 'tap_action',
+  hold_action = 'hold_action',
+  double_tap_action = 'double_tap_action',
 }
 
 const GENERIC_JS_TEMPLATE_HELPER = html`Insert valid Javascript code without [[[
@@ -525,7 +526,7 @@ export class NavbarCardEditor extends LitElement {
                           e.stopPropagation();
                           this.removeRoute(i);
                         }}
-                        class="delete-route-btn"
+                        class="delete-btn"
                         label="Delete route">
                         <ha-icon icon="mdi:delete"></ha-icon
                       ></ha-icon-button>
@@ -725,17 +726,37 @@ export class NavbarCardEditor extends LitElement {
                           </ha-button>
                         </div>
                       </ha-expansion-panel>
-                      ${this.makeActionSelector({
-                        actionType: HAActions.tap_action,
-                        configKey: `routes.${i}.tap_action` as any,
-                      })}
-                      ${this.makeActionSelector({
-                        actionType: HAActions.hold_action,
-                        configKey: `routes.${i}.hold_action` as any,
-                      })}
-                      ${this.makeActionSelector({
-                        actionType: HAActions.double_tap_action,
-                        configKey: `routes.${i}.double_tap_action` as any,
+                      ${Object.values(HAActions).map(type => {
+                        const key =
+                          `routes.${i}.${type}` as DotNotationKeys<NavbarCardConfig>;
+                        const actionValue = genericGetProperty(
+                          this._config,
+                          key,
+                        );
+                        const label = this._chooseLabelForAction(
+                          type as HAActions,
+                        );
+
+                        return html`
+                          ${actionValue != null
+                            ? this.makeActionSelector({
+                                actionType: type as HAActions,
+                                configKey: key,
+                              })
+                            : html`
+                                <ha-button
+                                  @click=${() =>
+                                    this.updateConfigByKey(key, {
+                                      action: 'none',
+                                    })}
+                                  style="margin-bottom: 1em;"
+                                  outlined
+                                  hasTrailingIcon>
+                                  <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add
+                                  ${label}
+                                </ha-button>
+                              `}
+                        `;
                       })}
                     </div>
                   </ha-expansion-panel>
@@ -743,7 +764,7 @@ export class NavbarCardEditor extends LitElement {
               `;
             })}
           </div>
-          <ha-button @click=${this.addRoute} outlined>
+          <ha-button @click=${this.addRoute} outlined hasTrailingIcon>
             <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add Route
           </ha-button>
         </div>
@@ -802,12 +823,23 @@ export class NavbarCardEditor extends LitElement {
 
     return html`
       <ha-expansion-panel outlined>
-        <h5 slot="header">
-          <ha-icon
-            icon="${this._chooseIconForAction(options.actionType)}"></ha-icon>
-          ${this._chooseLabelForAction(options.actionType)}
+        <h5 slot="header" style="display: flex; flex-direction: row">
+          <div class="expansion-panel-title">
+            <ha-icon
+              icon="${this._chooseIconForAction(options.actionType)}"></ha-icon>
+            ${this._chooseLabelForAction(options.actionType)}
+          </div>
+          <ha-icon-button
+            .label=${`Remove ${options.actionType}`}
+            class="delete-btn"
+            @click=${(e: Event) => {
+              e.stopPropagation();
+              this.updateConfigByKey(options.configKey, null);
+            }}>
+            <ha-icon icon="mdi:delete"></ha-icon>
+          </ha-icon-button>
         </h5>
-        <div>
+        <div class="editor-section">
           <ha-combo-box
             label=${this._chooseLabelForAction(options.actionType)}
             .items=${ACTIONS}
