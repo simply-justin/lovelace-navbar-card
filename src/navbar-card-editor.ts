@@ -160,7 +160,7 @@ export class NavbarCardEditor extends LitElement {
     return html`
       <ha-icon-picker
         label=${options.label}
-        .value=${genericGetProperty(this._config, options.configKey)}
+        .value=${genericGetProperty(this._config, options.configKey) ?? ''}
         .disabled=${options.disabled}
         @value-changed="${e => {
           this.updateConfigByKey(options.configKey, e.detail.value);
@@ -930,7 +930,8 @@ export class NavbarCardEditor extends LitElement {
 
     return html`
       <div class="navbar-editor">
-        ${this._config.template != undefined
+        ${this._config.template != undefined &&
+        this._config.template?.trim() != ''
           ? html`<ha-alert alert-type="warning"
               >You have the <code>template</code> field configured for
               navbar-card. Using the editor will override the props for
@@ -959,7 +960,7 @@ export class NavbarCardEditor extends LitElement {
   private addRoute = () => {
     const routes = [
       ...(this._config.routes ?? []),
-      { icon: '', label: '', url: '' },
+      { icon: 'mdi:alert-circle-outline', label: '', url: '' },
     ];
     this.updateConfig({ routes });
   };
