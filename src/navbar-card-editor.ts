@@ -725,6 +725,18 @@ export class NavbarCardEditor extends LitElement {
                           </ha-button>
                         </div>
                       </ha-expansion-panel>
+                      ${this.makeActionSelector({
+                        actionType: HAActions.tap_action,
+                        configKey: `routes.${i}.tap_action` as any,
+                      })}
+                      ${this.makeActionSelector({
+                        actionType: HAActions.hold_action,
+                        configKey: `routes.${i}.hold_action` as any,
+                      })}
+                      ${this.makeActionSelector({
+                        actionType: HAActions.double_tap_action,
+                        configKey: `routes.${i}.double_tap_action` as any,
+                      })}
                     </div>
                   </ha-expansion-panel>
                 </div>
@@ -778,59 +790,78 @@ export class NavbarCardEditor extends LitElement {
       { label: 'Navigate Back', value: 'navigate-back' },
     ];
 
-    const value =
-      genericGetProperty(this._config, options.configKey)?.action ||
-      'hass_action';
-    const isCustom = this.isCustomAction(value);
+    const raw = genericGetProperty(
+      this._config,
+      options.configKey,
+    ) as ExtendedActionConfig;
 
-    return html``;
+    const selected: 'hass_action' | 'open-popup' | 'navigate-back' =
+      this.isCustomAction(raw?.action)
+        ? (raw?.action as 'open-popup' | 'navigate-back')
+        : 'hass_action';
 
     return html`
-      <div>
-        <ha-combo-box
-          label=${this._chooseLabelForAction(options.actionType)}
-          .items=${ACTIONS}
-          .value=${value}
-          .disabled=${options.disabled}
-          @value-changed=${(e: CustomEvent) => {
-            const newValue = e.detail.value;
-            if (this.isCustomAction(newValue)) {
-              // Set the action to the custom action
-              this.updateConfigByKey(options.configKey, { action: newValue });
-            } else {
-              // Reset to empty Home Assistant action config
-              this.updateConfigByKey(options.configKey, { action: undefined });
-            }
-          }}></ha-combo-box>
-        ${!isCustom
-          ? html`
-              <ha-form
-                .hass=${this.hass}
-                .data=${genericGetProperty(this._config, options.configKey) ||
-                {}}
-                .schema=${[
-                  {
-                    name: 'action',
-                    label: this._chooseLabelForAction(options.actionType),
-                    selector: {
-                      ui_action: {
-                        default_action: 'none',
+      <ha-expansion-panel outlined>
+        <h5 slot="header">
+          <ha-icon
+            icon="${this._chooseIconForAction(options.actionType)}"></ha-icon>
+          ${this._chooseLabelForAction(options.actionType)}
+        </h5>
+        <div>
+          <ha-combo-box
+            label=${this._chooseLabelForAction(options.actionType)}
+            .items=${ACTIONS}
+            .value=${selected}
+            .disabled=${options.disabled}
+            @value-changed=${(e: CustomEvent) => {
+              const newSel = e.detail.value;
+
+              if (newSel === 'hass_action') {
+                // By default, start with action: "none"
+                this.updateConfigByKey(options.configKey, { action: 'none' });
+              } else {
+                this.updateConfigByKey(options.configKey, {
+                  action: newSel,
+                });
+              }
+            }}></ha-combo-box>
+
+          ${selected === 'hass_action'
+            ? html`
+                <ha-form
+                  .hass=${this.hass}
+                  .data=${typeof raw === 'object' ? { action: raw } : {}}
+                  .schema=${[
+                    {
+                      name: 'action',
+                      label: this._chooseLabelForAction(options.actionType),
+                      required: true,
+                      selector: {
+                        ui_action: {
+                          default_action: 'none',
+                        },
                       },
                     },
-                  },
-                ]}
-                @value-changed=${(ev: CustomEvent) => {
-                  // Update the config with the new action object
-                  console.log(ev.detail.value);
-                  console.log(options.configKey);
-                  this.updateConfigByKey(
-                    options.configKey,
-                    ev.detail.value?.action,
-                  );
-                }}></ha-form>
-            `
-          : ''}
-      </div>
+                  ]}
+                  @value-changed=${(ev: CustomEvent) => {
+                    const formValue: any = ev.detail.value;
+                    // If the form returned { action: { ... } }, unwrap it
+                    const flatValue =
+                      formValue.action && typeof formValue.action === 'object'
+                        ? formValue.action
+                        : formValue;
+
+                    this.updateConfigByKey(
+                      options.configKey,
+                      flatValue.action != undefined
+                        ? flatValue
+                        : { action: 'none' },
+                    );
+                  }}></ha-form>
+              `
+            : ''}
+        </div>
+      </ha-expansion-panel>
     `;
   }
 
@@ -845,13 +876,9 @@ export class NavbarCardEditor extends LitElement {
 
     return html`
       <div class="navbar-editor">
-        ${this.makeActionSelector({
-          configKey: 'routes.0.tap_action' as any,
-          actionType: HAActions.tap_action,
-        })}
-        ${this.renderRoutesEditor()} ${this.renderDesktopEditor()}
-        ${this.renderMobileEditor()} ${this.renderHapticsEditor()}
-        ${this.renderStylesEditor()}
+        ${this.renderTemplateEditor()} ${this.renderRoutesEditor()}
+        ${this.renderDesktopEditor()} ${this.renderMobileEditor()}
+        ${this.renderHapticEditor()} ${this.renderStylesEditor()}
       </div>
     `;
   }
