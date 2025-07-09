@@ -46,6 +46,34 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 
 <br>
 
+## ⚡ Quickstart
+
+1. **Edit your Home Assistant dashboard**: Go to your dashboard in Home Assistant and enter edit mode.
+2. **Add the Navbar Card**: Click to add a new card, search for "navbar-card", and add it anywhere in your dashboard layout (doesn't matter where, navbar-card will automatically float to the bottom on mobile devices, and to the position you have configured for desktop devices).
+3. **Configure your routes**: In the card configuration, define a few routes to the views you want quick access to. For example:
+
+```yaml
+type: custom:navbar-card
+routes:
+  - url: /lovelace/home
+    icon: mdi:home
+    label: Home
+  - url: /lovelace/lights
+    icon: mdi:lightbulb-outline
+    label: Lights
+  - url: /lovelace/devices
+    icon: mdi:devices
+    label: Devices
+```
+
+4. **Save and enjoy**: Save your dashboard. The navbar will now appear and let you quickly switch between your configured views!
+
+<br>
+
+---
+
+<br>
+
 ## ⚙️ Configuration
 
 | Name       | Type                  | Default    | Description                                                  |
