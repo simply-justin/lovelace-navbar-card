@@ -14,7 +14,12 @@ import {
   genericSetProperty,
   NestedType,
 } from './types';
-import { cleanTemplate, deepMergeKeepArrays, wrapTemplate } from './utils';
+import {
+  cleanTemplate,
+  deepMergeKeepArrays,
+  processTemplate,
+  wrapTemplate,
+} from './utils';
 import { getEditorStyles } from './styles';
 
 enum HAActions {
@@ -507,7 +512,9 @@ export class NavbarCardEditor extends LitElement {
                               src="${route.image}"
                               class="route-header-image" />`
                           : html`<ha-icon icon="${route.icon}"></ha-icon>`}
-                        ${route.label ?? ''}
+                        ${route.label
+                          ? processTemplate(this.hass, route.label)
+                          : ''}
                       </span>
                       <ha-icon-button
                         @click=${e => {
