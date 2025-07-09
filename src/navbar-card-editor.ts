@@ -118,7 +118,7 @@ export class NavbarCardEditor extends LitElement {
     suffix?: string;
     prefixIcon?: string;
     tooltip?: string;
-    helper?: string;
+    helper?: string | TemplateResult;
     helperPersistent?: boolean;
     placeholder?: string;
   }) {
@@ -171,7 +171,8 @@ export class NavbarCardEditor extends LitElement {
     label: string;
     configKey: DotNotationKeys<NavbarCardConfig>;
     tooltip?: string | TemplateResult;
-    helper?: string | TemplateResult;
+    templateHelper?: string | TemplateResult;
+    textHelper?: string | TemplateResult;
   }) {
     const value = genericGetProperty(this._config, options.configKey) as
       | string
@@ -216,7 +217,7 @@ export class NavbarCardEditor extends LitElement {
           label: '',
           configKey: options.configKey,
           tooltip: options.tooltip,
-          helper: options.helper,
+          helper: options.templateHelper,
         })}
       `;
     } else {
@@ -232,6 +233,7 @@ export class NavbarCardEditor extends LitElement {
             label: '',
             configKey: options.configKey,
             tooltip: options.tooltip as string | undefined,
+            helper: options.textHelper,
           })}
         </div>
       `;
@@ -308,7 +310,8 @@ export class NavbarCardEditor extends LitElement {
           <ha-alert alert-type="info" title="Custom CSS Styles">
             Use this section to change the appearance of
             <code>navbar-card</code>.<br />
-            Enter your CSS code here (no <code>"styles: |"</code> prefix needed).<br />
+            Enter your CSS code here (no <code>"styles: |"</code> prefix
+            needed).<br />
             <a
               href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#styles"
               target="_blank"
