@@ -957,11 +957,15 @@ export class NavbarCardEditor extends LitElement {
 
   // Helper methods for route/popup manipulation
   private addRoute = () => {
-    const routes = [...this._config.routes, { icon: '', label: '', url: '' }];
+    const routes = [
+      ...(this._config.routes ?? []),
+      { icon: '', label: '', url: '' },
+    ];
     this.updateConfig({ routes });
   };
 
   private removeRoute = (index: number) => {
+    if (!this._config.routes || this._config.routes.length == 0) return;
     const routes = [...this._config.routes];
     routes.splice(index, 1);
     if (routes.length == 0) {
@@ -971,16 +975,8 @@ export class NavbarCardEditor extends LitElement {
     }
   };
 
-  private moveRoute = (index: number, direction: -1 | 1) => {
-    const routes = [...this._config.routes];
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= routes.length) return;
-    [routes[index], routes[newIndex]] = [routes[newIndex], routes[index]];
-    this.updateConfig({ routes });
-  };
-
   private addPopup = (routeIndex: number) => {
-    const routes = [...this._config.routes];
+    const routes = [...(this._config.routes ?? [])];
     const popup = [
       ...(routes[routeIndex].popup || []),
       { icon: '', label: '', url: '' },
@@ -990,7 +986,7 @@ export class NavbarCardEditor extends LitElement {
   };
 
   private removePopup = (routeIndex: number, popupIndex: number) => {
-    const routes = [...this._config.routes];
+    const routes = [...(this._config.routes ?? [])];
     const popup = [...(routes[routeIndex].popup || [])];
     popup.splice(popupIndex, 1);
     routes[routeIndex] = { ...routes[routeIndex], popup };
@@ -1002,7 +998,7 @@ export class NavbarCardEditor extends LitElement {
     popupIndex: number,
     direction: -1 | 1,
   ) => {
-    const routes = [...this._config.routes];
+    const routes = [...(this._config.routes ?? [])];
     const popup = [...(routes[routeIndex].popup || [])];
     const newIndex = popupIndex + direction;
     if (newIndex < 0 || newIndex >= popup.length) return;
