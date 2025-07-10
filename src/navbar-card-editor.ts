@@ -73,7 +73,10 @@ export class NavbarCardEditor extends LitElement {
   // TODO change the type of "value"
   updateConfigByKey(
     key: DotNotationKeys<NavbarCardConfig>,
-    value: NestedType<NavbarCardConfig, DotNotationKeys<NavbarCardConfig>>,
+    value: NestedType<
+      NavbarCardConfig,
+      DotNotationKeys<NavbarCardConfig>
+    > | null,
   ) {
     this._config = genericSetProperty(this._config, key, value);
     this.dispatchEvent(
@@ -143,11 +146,11 @@ export class NavbarCardEditor extends LitElement {
           @input="${e => {
             this.updateConfigByKey(
               options.configKey,
-              options.type == 'number'
-                ? e.target.value == ''
-                  ? undefined
-                  : parseInt(e.target.value)
-                : e.target.value,
+              e.target.value?.trim() == ''
+                ? null
+                : options.type == 'number'
+                  ? parseInt(e.target.value)
+                  : e.target.value,
             );
           }}"></ha-textfield>
       </div>
@@ -199,7 +202,9 @@ export class NavbarCardEditor extends LitElement {
     };
 
     // Button label and icon
-    const buttonLabel = isTemplate ? 'Switch to text' : 'Switch to template';
+    const buttonLabel = isTemplate
+      ? 'Switch to plain text'
+      : 'Switch to template';
     const buttonIcon = isTemplate ? 'mdi:format-text' : 'mdi:code-braces';
 
     // Compose the toggle button
@@ -263,7 +268,9 @@ export class NavbarCardEditor extends LitElement {
           )}
           @value-changed=${e => {
             const templateValue =
-              e.target.value?.trim() == '' ? '' : wrapTemplate(e.target.value);
+              e.target.value?.trim() == ''
+                ? null
+                : wrapTemplate(e.target.value);
             this.updateConfigByKey(options.configKey, templateValue);
           }}></ha-code-editor>
         ${options.helper
@@ -472,16 +479,27 @@ export class NavbarCardEditor extends LitElement {
                 Badge
               </h5>
               <div class="editor-section">
-                ${this.makeTextInput({
+                ${this.makeStringOrTemplateEditor({
                   label: 'Color',
                   configKey: `${baseConfigKey}.badge.color` as any,
-                  helper:
+                  textHelper:
                     'Color of the badge in any CSS valid format (red, #ff0000, rgba(255,0,0,1)...)',
+                  templateHelper: STRING_JS_TEMPLATE_HELPER,
                 })}
                 ${this.makeTemplateEditor({
                   label: 'Show',
                   configKey: `${baseConfigKey}.badge.show` as any,
                   helper: BOOLEAN_JS_TEMPLATE_HELPER,
+                })}
+                ${this.makeStringOrTemplateEditor({
+                  label: 'Count',
+                  configKey: `${baseConfigKey}.badge.count` as any,
+                  templateHelper: STRING_JS_TEMPLATE_HELPER,
+                })}
+                ${this.makeStringOrTemplateEditor({
+                  label: 'TextColor',
+                  configKey: `${baseConfigKey}.badge.textColor` as any,
+                  templateHelper: STRING_JS_TEMPLATE_HELPER,
                 })}
               </div>
             </ha-expansion-panel>

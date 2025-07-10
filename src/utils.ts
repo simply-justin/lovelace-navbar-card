@@ -75,8 +75,11 @@ export const processTemplate = (hass: HomeAssistant, template?: unknown) => {
  * @param template - The template string to clean (e.g., '[[[ some code ]]]').
  * @returns The template string without the wrapping delimiters.
  */
-export const cleanTemplate = (template: string) => {
-  return template.replace(/\[\[\[|\]\]\]/g, '');
+export const cleanTemplate = (template: unknown): string => {
+  if (typeof template === 'string') {
+    return template.replace(/\[\[\[|\]\]\]/g, '');
+  }
+  return template?.toString() ?? '';
 };
 
 /**

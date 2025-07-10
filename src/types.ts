@@ -50,7 +50,7 @@ export function genericGetProperty<T, K extends DotNotationKeys<T>>(
 export function genericSetProperty<T, K extends DotNotationKeys<T>>(
   obj: T,
   key: K,
-  value: NestedType<T, K>,
+  value: NestedType<T, K> | null,
 ): T {
   const paths = key.split('.');
   const finalKey = paths.pop() as string;
