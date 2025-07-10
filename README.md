@@ -120,10 +120,12 @@ Configuration to display a small badge on any of the navbar items.
 
 ![navbar-card-badge](https://github.com/user-attachments/assets/5f548ce3-82b5-422f-a084-715bc73846b0)
 
-| Name    | Type                                 | Default | Description                                                     |
-| ------- | ------------------------------------ | ------- | --------------------------------------------------------------- |
-| `show`  | boolean \| [JSTemplate](#jstemplate) | false   | Boolean template indicating whether to display the badge or not |
-| `color` | string                               | red     | Background color of the badge                                   |
+| Name        | Type                                 | Default | Description                                                     |
+| ----------- | ------------------------------------ | ------- | --------------------------------------------------------------- |
+| `show`      | boolean \| [JSTemplate](#jstemplate) | false   | Boolean template indicating whether to display the badge or not |
+| `color`     | string \| [JSTemplate](#jstemplate)  | red     | Background color of the badge                                   |
+| `count`     | string \| [JSTemplate](#jstemplate)  | -       | Text to be displayed inside the badge                           |
+| `textColor` | string \| [JSTemplate](#jstemplate)  | -       | Color for the text displayed inside the badge                   |
 
 #### Popup Items
 
@@ -344,14 +346,14 @@ your_theme:
     .: |
       /* Add padding to the left (or other sides, depending on your navbar position) for desktop screens */
       @media (min-width: 768px) {
-        hui-sections-view {
+        :not(.edit-mode) > #view {
           padding-left: 100px !important;
         }
       }
 
       /* Add bottom padding for mobile screens to prevent cards from overlapping with the navbar */
       @media (max-width: 767px) {
-        hui-sections-view:after {
+        :not(.edit-mode) > hui-view:after {
           content: "";
           display: block;
           height: 80px;
@@ -453,7 +455,7 @@ routes:
             text: Are you sure you want to restart Home Assistant?
     badge:
       show: >
-        [[[ states['binary_sensor.docker_hub_update_available'].state === 'on' ]]]
+        [[[ return states['binary_sensor.docker_hub_update_available'].state === 'on' ]]]
       color: var(--primary-color)
 ```
 
