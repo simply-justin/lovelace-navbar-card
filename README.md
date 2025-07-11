@@ -637,8 +637,8 @@ routes:
     label: Settings
     icon: mdi:cog
     # This route will only be displayed for user "jose"
-    show: |
-      [[[ return user.name == "jose"]]]
+    hidden: |
+      [[[ return user.name != "jose"]]]
 ```
 
 </details>
