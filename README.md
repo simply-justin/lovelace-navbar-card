@@ -1,13 +1,21 @@
+# Navbar Card
+
 [![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
 [![Last commit](https://img.shields.io/github/last-commit/joseluis9595/lovelace-navbar-card)](#)
 ![Downloads](https://img.shields.io/github/downloads/joseluis9595/lovelace-navbar-card/total)
 [![HA Community forum](https://img.shields.io/badge/Home%20Assistant-Community%20Forum-319fee?logo=home-assistant)](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917)
+[![Buy me a beer](https://img.shields.io/badge/Support-Buy%20me%20a%20beer-fdd734?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/joseluis9595)
 
-# Navbar Card
+<img width="1282" height="478" alt="navbar-card-github" src="https://github.com/user-attachments/assets/11c383ad-bdc1-4254-b6b0-c88a5341ecc0" />
 
-![navbar-card](https://github.com/user-attachments/assets/df2a9a5d-51ec-4786-8f54-36ece2aa6f9a)
+<br>
+<br>
 
-Navbar Card is a custom Lovelace card designed to simplify navigation within your Home Assistant dashboard, heavily inspired by the great work of [Adaptive Mushroom](https://community.home-assistant.io/t/adaptive-mushroom/640308). It provides a sleek, responsive navigation bar that displays as a full-width bar at the bottom on mobile devices. On desktop, it adapts into a flexible container that can be positioned on any side of the screen (top, bottom, left, or right) adjusting its orientation to fit seamlessly.
+Navbar Card is a custom Lovelace card designed to **simplify navigation** within your Home Assistant dashboard, heavily inspired by the great work of [**Adaptive Mushroom**](https://community.home-assistant.io/t/adaptive-mushroom/640308) and [**Google's Material Design**](https://m3.material.io/). It provides a sleek, responsive navigation bar that displays as a full-width bar at the bottom on mobile devices. On desktop, it adapts into a flexible container that can be positioned on any side of the screen (top, bottom, left, or right) adjusting its orientation to fit seamlessly.
+
+<br>
+
+[**Installation**](#-installation) • [**Quickstart**](#-quickstart) • [**Configuration**](#%EF%B8%8F-configuration) • [**Dashboard adjustements**](#%EF%B8%8F-dashboard-adjustements) • [**Example configurations**](#-example-configurations) • [**Help**](#-help) • [**Donate**](#-donate)
 
 <br>
 
@@ -17,11 +25,19 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 
 ## 🚀 Installation
 
-### Open in HACS (recommended)
+<details open>
+  <summary>Open in HACS (recommended)</summary>
+
+<br>
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=joseluis9595&repository=lovelace-navbar-card&category=plugin)
+   
+</details>
 
-### HACS manual configuration
+<details>
+  <summary>HACS manual configuration</summary>
+
+<br>
 
 1. Go to HACS in Home Assistant.
 2. On the top right, click "Custom repositories".
@@ -29,7 +45,12 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
 4. Search for "Navbar Card".
 5. Click Install!
 
-### Manual
+</details>
+
+<details>
+  <summary>Manual installation without HACS</summary>
+
+<br>
 
 1. Download [navbar-card.js](https://github.com/joseluis9595/lovelace-navbar-card/releases/latest/download/navbar-card.js) from the latest release.
 2. Move this file to home assistant's `<config>/www` folder.
@@ -39,6 +60,8 @@ Navbar Card is a custom Lovelace card designed to simplify navigation within you
    - **URL**: `/local/navbar-card.js`
    - **Resource type**: JavaScript module
 6. Go to your dashboard, refresh your page and add your new navbar-card!
+
+</details>
 
 <br>
 
@@ -75,6 +98,9 @@ routes:
 <br>
 
 ## ⚙️ Configuration
+
+<img width="400" height="120" alt="navbar-card" src="https://github.com/user-attachments/assets/346a6466-1a79-400e-9fe4-4f8472b3bee5" />
+
 
 | Name       | Type                  | Default    | Description                                                  |
 | ---------- | --------------------- | ---------- | ------------------------------------------------------------ |
@@ -146,7 +172,8 @@ routes:
 
 Configuration to display a small badge on any of the navbar items.
 
-![navbar-card-badge](https://github.com/user-attachments/assets/5f548ce3-82b5-422f-a084-715bc73846b0)
+<img width="400" height="120" alt="navbar-card_badges" src="https://github.com/user-attachments/assets/44824ecd-9088-44c3-bab1-d900edeea614" />
+
 
 | Name        | Type                                 | Default | Description                                                     |
 | ----------- | ------------------------------------ | ------- | --------------------------------------------------------------- |
@@ -158,6 +185,9 @@ Configuration to display a small badge on any of the navbar items.
 #### Popup Items
 
 For each route, a popup menu can be configured, to display a popup when clicked. This is activated using the `open-popup` action in either `tap_action` or `hold_action`.
+
+<img width="431" height="218" alt="navbar-card_popup" src="https://github.com/user-attachments/assets/520d85c7-9d73-4e73-b3c3-a4a6b2635dcb" />
+
 
 | Name          | Type                                | Default     | Description                                                                       |
 | ------------- | ----------------------------------- | ----------- | --------------------------------------------------------------------------------- |
@@ -214,6 +244,8 @@ routes:
 
 Specific configuration for desktop mode.
 
+<img width="400" height="120" alt="navbar-card_desktop" src="https://github.com/user-attachments/assets/3f110a2d-3078-41ff-b357-459c69785fe8" />
+
 | Name          | Type                                     | Default  | Description                                                                |
 | ------------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
 | `show_labels` | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                          |
@@ -226,6 +258,8 @@ Specific configuration for desktop mode.
 ### Mobile
 
 Specific configuration for mobile mode.
+
+<img width="400" height="96" alt="navbar-card_mobile" src="https://github.com/user-attachments/assets/cefed0af-3c52-4ab2-90fa-0e277a35df4d" />
 
 | Name          | Type                                     | Default | Description                                       |
 | ------------- | ---------------------------------------- | ------- | ------------------------------------------------- |
@@ -357,7 +391,7 @@ Here is a breakdown of the CSS classes available for customization:
 
 <br>
 
-## 🛠️ Dashboard adjustements (Optional)
+## 🛠️ Dashboard adjustements
 
 ### Padding
 
@@ -431,6 +465,7 @@ your_theme:
 ---
 
 <br>
+
 
 ## 📚 Example Configurations
 
@@ -630,3 +665,40 @@ routes:
 ```
 
 </details>
+
+
+
+<br>
+
+---
+
+<br>
+
+## 💬 Help
+
+Need help using `navbar-card`, have ideas, or found a bug? Here's how you can reach out:
+
+- **🐛 Found a bug or have a feature request?**<br>
+  [Open an issue on GitHub](https://github.com/joseluis9595/lovelace-navbar-card/issues) so we can track and fix it.
+
+- **💬 Have questions, want to share feedback, or just chat?**<br>
+  Either start [a discussion on GitHub](https://github.com/joseluis9595/lovelace-navbar-card/discussions) or join the conversation on the [Home Assistant Community Forum
+](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917).
+
+Your feedback helps make navbar-card better for everyone. Don’t hesitate to reach out!
+
+
+<br>
+
+---
+
+<br>
+
+## 🍻 Donate
+
+If you enjoy using `navbar-card` and want to support its continued development, consider buying me a coffee (or a beer 🍺), or becoming a GitHub Sponsor!
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_a_Beer-fdd734?&logo=buy-me-a-coffee&logoColor=black&style=for-the-badge)](https://www.buymeacoffee.com/joseluis9595)  [![GitHub Sponsors](https://img.shields.io/badge/GitHub_Sponsors-30363d?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/joseluis9595)
+
+Your support means a lot and helps keep the project alive and growing. Thank you! 🙌
+
