@@ -818,7 +818,7 @@ export class NavbarCardEditor extends LitElement {
     }
   }
   isCustomAction(value: string) {
-    return ['open-popup', 'navigate-back'].includes(value);
+    return ['open-popup', 'navigate-back', 'toggle-menu'].includes(value);
   }
 
   makeActionSelector(options: {
@@ -830,6 +830,7 @@ export class NavbarCardEditor extends LitElement {
       { label: 'Home Assistant action', value: 'hass_action' },
       { label: 'Open Popup', value: 'open-popup' },
       { label: 'Navigate Back', value: 'navigate-back' },
+      { label: 'Toggle sidebar', value: 'toggle-menu' },
     ];
 
     const raw = genericGetProperty(
