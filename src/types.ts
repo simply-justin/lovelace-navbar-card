@@ -1,3 +1,8 @@
+export type RippleElement = Element & {
+  hovered?: boolean;
+  pressed?: boolean;
+};
+
 /**
  * Type referring to all the keys inside a dictionary, using dot notation
  */
