@@ -13,6 +13,7 @@ import {
   DesktopPosition,
   NavbarCardConfig,
   PopupItem,
+  RippleElement,
   RouteItem,
 } from './types';
 import {
@@ -49,7 +50,6 @@ const PROPS_TO_FORCE_UPDATE = [
   '_inEditDashboardMode',
   '_inEditCardMode',
   '_inPreviewMode',
-  '_location',
   '_popup',
 ];
 
@@ -66,7 +66,6 @@ export class NavbarCard extends LitElement {
   @state() private _inEditCardMode?: boolean;
   @state() private _inPreviewMode?: boolean;
   @state() private _lastRender?: number;
-  @state() private _location?: string;
   @state() private _popup?: TemplateResult | null;
 
   // hold_action state variables
@@ -91,9 +90,6 @@ export class NavbarCard extends LitElement {
 
     // Quick fix for ripple effects
     forceResetRipple(this);
-
-    // Initialize location
-    this._location = window.location.pathname;
 
     // Initialize screen size listener
     window.addEventListener('resize', this._checkDesktop);
@@ -310,6 +306,43 @@ export class NavbarCard extends LitElement {
   }
 
   /**********************************************************************/
+  /* Utils */
+  /**********************************************************************/
+  private _shouldTriggerHaptic(
+    actionType: 'tap' | 'hold' | 'double_tap',
+    isNavigation = false,
+  ): boolean {
+    const hapticConfig = this._config?.haptic;
+
+    // If haptic is a boolean, use it as a global setting
+    if (typeof hapticConfig === 'boolean') {
+      return hapticConfig;
+    }
+
+    // If no haptic config is provided, return default values
+    if (!hapticConfig) {
+      return !isNavigation;
+    }
+
+    // Check navigation first
+    if (isNavigation) {
+      return hapticConfig.url ?? false;
+    }
+
+    // Check specific action types
+    switch (actionType) {
+      case 'tap':
+        return hapticConfig.tap_action ?? false;
+      case 'hold':
+        return hapticConfig.hold_action ?? false;
+      case 'double_tap':
+        return hapticConfig.double_tap_action ?? false;
+      default:
+        return false;
+    }
+  }
+
+  /**********************************************************************/
   /* Navbar callbacks */
   /**********************************************************************/
 
@@ -344,7 +377,7 @@ export class NavbarCard extends LitElement {
     const isActive =
       route.selected != null
         ? processTemplate(this.hass, route.selected)
-        : this._location == route.url;
+        : window.location.pathname == route.url;
 
     if (processTemplate(this.hass, route.hidden)) {
       return null;
@@ -353,22 +386,25 @@ export class NavbarCard extends LitElement {
     return html`
       <div
         class="route ${isActive ? 'active' : ''}"
+        @mouseenter=${(e: PointerEvent) => this._handleMouseEnter(e, route)}
+        @mousemove=${(e: PointerEvent) => this._handleMouseMove(e, route)}
+        @mouseleave=${(e: PointerEvent) => this._handleMouseLeave(e, route)}
         @pointerdown=${(e: PointerEvent) => this._handlePointerDown(e, route)}
         @pointermove=${(e: PointerEvent) => this._handlePointerMove(e, route)}
         @pointerup=${(e: PointerEvent) => this._handlePointerUp(e, route)}
         @pointercancel=${(e: PointerEvent) =>
           this._handlePointerMove(e, route)}>
-        ${this._renderBadge(route, isActive)}
-
         <div class="button ${isActive ? 'active' : ''}">
           ${this._getRouteIcon(route, isActive)}
-          <md-ripple></md-ripple>
+          <ha-ripple></ha-ripple>
         </div>
+
         ${this._shouldShowLabels(false)
           ? html`<div class="label ${isActive ? 'active' : ''}">
               ${processTemplate(this.hass, route.label) ?? ' '}
             </div>`
           : html``}
+        ${this._renderBadge(route, isActive)}
       </div>
     `;
   };
@@ -509,8 +545,6 @@ export class NavbarCard extends LitElement {
               style="--index: ${index}"
               @click=${(e: MouseEvent) =>
                 this._handlePointerUp(e as PointerEvent, popupItem, true)}>
-              ${this._renderBadge(popupItem, false)}
-
               <div class="button">
                 ${this._getRouteIcon(popupItem, false)}
                 <md-ripple></md-ripple>
@@ -520,6 +554,7 @@ export class NavbarCard extends LitElement {
                     ${processTemplate(this.hass, popupItem.label) ?? ' '}
                   </div>`
                 : html``}
+              ${this._renderBadge(popupItem, false)}
             </div>`;
           })
           .filter(x => x != null)}
@@ -555,7 +590,7 @@ export class NavbarCard extends LitElement {
   };
 
   /**********************************************************************/
-  /* Event listenrs */
+  /* Event listeners */
   /**********************************************************************/
   private _onPopupKeyDownListener = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && this._popup) {
@@ -567,6 +602,27 @@ export class NavbarCard extends LitElement {
   /**********************************************************************/
   /* Pointer event listenrs */
   /**********************************************************************/
+  private _handleMouseEnter = (e: MouseEvent, _route: RouteItem) => {
+    const ripple = (e.currentTarget as HTMLElement).querySelector(
+      'ha-ripple',
+    ) as RippleElement;
+    if (ripple) ripple.hovered = true;
+  };
+
+  private _handleMouseMove = (e: MouseEvent, _route: RouteItem) => {
+    const ripple = (e.currentTarget as HTMLElement).querySelector(
+      'ha-ripple',
+    ) as RippleElement;
+    if (ripple) ripple.hovered = true;
+  };
+
+  private _handleMouseLeave = (e: MouseEvent, _route: RouteItem) => {
+    const ripple = (e.currentTarget as HTMLElement).querySelector(
+      'ha-ripple',
+    ) as RippleElement;
+    if (ripple) ripple.hovered = false;
+  };
+
   private _handlePointerDown = (e: PointerEvent, route: RouteItem) => {
     // Store the starting position for movement detection
     this.pointerStartX = e.clientX;
@@ -817,54 +873,26 @@ export class NavbarCard extends LitElement {
       ${userStyles}
     `;
   }
-
-  private _shouldTriggerHaptic(
-    actionType: 'tap' | 'hold' | 'double_tap',
-    isNavigation = false,
-  ): boolean {
-    const hapticConfig = this._config?.haptic;
-
-    // If haptic is a boolean, use it as a global setting
-    if (typeof hapticConfig === 'boolean') {
-      return hapticConfig;
-    }
-
-    // If no haptic config is provided, return default values
-    if (!hapticConfig) {
-      return !isNavigation;
-    }
-
-    // Check navigation first
-    if (isNavigation) {
-      return hapticConfig.url ?? false;
-    }
-
-    // Check specific action types
-    switch (actionType) {
-      case 'tap':
-        return hapticConfig.tap_action ?? false;
-      case 'hold':
-        return hapticConfig.hold_action ?? false;
-      case 'double_tap':
-        return hapticConfig.double_tap_action ?? false;
-      default:
-        return false;
-    }
-  }
 }
 
 console.info(
-  `%c navbar-card %c ${version} `,
+  `%c navbar-card%cv${version} `,
   // Card name styles
-  'background-color: #555;\
-      padding: 6px 4px;\
-      color: #fff;\
-      text-shadow: 0 1px 0 rgba(1, 1, 1, 0.3); \
-      border-radius: 10px 0 0 10px;',
+  `background-color: #555;
+      padding: 6px 8px;
+      padding-right: 6px;
+      color: #fff;
+      font-weight: 800;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      text-shadow: 0 1px 0 rgba(1, 1, 1, 0.3); 
+      border-radius: 16px 0 0 16px;`,
   // Card version styles
-  'background-color: #00abd1; \
-      padding: 6px 4px;\
-      color: #fff;\
-      text-shadow: 0 1px 0 rgba(1, 1, 1, 0.3); \
-      border-radius: 0 10px 10px 0;',
+  `background-color:rgb(0, 135, 197);
+      padding: 6px 8px;
+      padding-left: 6px;
+      color: #fff;
+      font-weight: 800;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      text-shadow: 0 1px 0 rgba(1, 1, 1, 0.3); 
+      border-radius: 0 16px 16px 0;`,
 );
