@@ -31,7 +31,7 @@ Navbar Card is a custom Lovelace card designed to **simplify navigation** within
 <br>
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=joseluis9595&repository=lovelace-navbar-card&category=plugin)
-   
+
 </details>
 
 <details>
@@ -101,13 +101,13 @@ routes:
 
 <img width="400" height="120" alt="navbar-card" src="https://github.com/user-attachments/assets/346a6466-1a79-400e-9fe4-4f8472b3bee5" />
 
-
 | Name       | Type                  | Default    | Description                                                  |
 | ---------- | --------------------- | ---------- | ------------------------------------------------------------ |
 | `routes`   | [Routes](#routes)     | `Required` | Defines the array of routes to be shown in the navbar        |
 | `desktop`  | [Desktop](#desktop)   | -          | Options specific to desktop mode                             |
 | `mobile`   | [Mobile](#mobile)     | -          | Options specific to mobile mode                              |
 | `template` | [Template](#template) | -          | Template name                                                |
+| `layout`   | [Layout](#layout)     | -          | Layout configuration options                                 |
 | `styles`   | [Styles](#styles)     | -          | Custom CSS styles for the card                               |
 | `haptic`   | [Haptic](#haptic)     | -          | Fine tune when the haptic events should be fired in the card |
 
@@ -118,10 +118,10 @@ Routes represents an array of clickable icons that redirects to a given path. Ea
 | Name                | Type                                 | Default     | Description                                                                                                                                                |
 | ------------------- | ------------------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `url`               | string                               | `Required*` | The path to a Lovelace view. Ignored if `tap_action` is defined.                                                                                           |
-| `icon`              | string                               | -           | Material icon to display as this entry icon. Either `icon` or `image` is required.                                                                         |
-| `icon_selected`     | string                               | -           | Icon to be displayed when `url` matches the current browser URL                                                                                            |
-| `image`             | string                               | -           | URL of an image to display as this entry icon. Either `icon` or `image` is required.                                                                       |
-| `image_selected`    | string                               | -           | Image to be displayed when `url` matches the current browser URL                                                                                           |
+| `icon`              | string \| [JSTemplate](#jstemplate)  | -           | Material icon to display as this entry icon. Either `icon` or `image` is required.                                                                         |
+| `icon_selected`     | string \| [JSTemplate](#jstemplate)  | -           | Icon to be displayed when `url` matches the current browser URL                                                                                            |
+| `image`             | string \| [JSTemplate](#jstemplate)  | -           | URL of an image to display as this entry icon. Either `icon` or `image` is required.                                                                       |
+| `image_selected`    | string \| [JSTemplate](#jstemplate)  | -           | Image to be displayed when `url` matches the current browser URL                                                                                           |
 | `badge`             | [Badge](#badge)                      | -           | Badge configuration                                                                                                                                        |
 | `label`             | string \| [JSTemplate](#jstemplate)  | -           | Label to be displayed under the given route if `show_labels` is true                                                                                       |
 | `tap_action`        | [tap_action](#actions)               | -           | Custom tap action configuration.                                                                                                                           |
@@ -147,11 +147,12 @@ Routes represents an array of clickable icons that redirects to a given path. Ea
 
 Apart from the [standard Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) (navigate, call-service, etc.), `navbar-card` supports some additional custom actions:
 
-| Action          | Description                                                | Required Parameters |
-| --------------- | ---------------------------------------------------------- | ------------------- |
-| `open-popup`    | Opens the popup menu defined in the route                  | None                |
-| `toggle-menu`   | Opens the native HA side menu                              | None                |
-| `navigate-back` | Navigates back to the previous page in the browser history | None                |
+| Action               | Description                                                | Required Parameters |
+| -------------------- | ---------------------------------------------------------- | ------------------- |
+| `open-popup`         | Opens the popup menu defined in the route                  | None                |
+| `toggle-menu`        | Opens the native HA side menu                              | None                |
+| `show-notifications` | Opens the native HA notifications drawer                   | None                |
+| `navigate-back`      | Navigates back to the previous page in the browser history | None                |
 
 Example:
 
@@ -174,7 +175,6 @@ Configuration to display a small badge on any of the navbar items.
 
 <img width="400" height="120" alt="navbar-card_badges" src="https://github.com/user-attachments/assets/44824ecd-9088-44c3-bab1-d900edeea614" />
 
-
 | Name        | Type                                 | Default | Description                                                     |
 | ----------- | ------------------------------------ | ------- | --------------------------------------------------------------- |
 | `show`      | boolean \| [JSTemplate](#jstemplate) | false   | Boolean template indicating whether to display the badge or not |
@@ -188,15 +188,18 @@ For each route, a popup menu can be configured, to display a popup when clicked.
 
 <img width="431" height="218" alt="navbar-card_popup" src="https://github.com/user-attachments/assets/520d85c7-9d73-4e73-b3c3-a4a6b2635dcb" />
 
-
-| Name          | Type                                | Default     | Description                                                                       |
-| ------------- | ----------------------------------- | ----------- | --------------------------------------------------------------------------------- |
-| `url`         | string                              | `Required*` | The path to a Lovelace view. Ignored if `tap_action` is defined.                  |
-| `icon`        | string                              | `Required`  | Material icon to display as this entry icon                                       |
-| `badge`       | [Badge](#badge)                     | -           | Badge configuration                                                               |
-| `label`       | string \| [JSTemplate](#jstemplate) | -           | Label to be displayed under the given route if `show_labels` is true              |
-| `tap_action`  | [tap_action](#actions)              | -           | Custom tap action configuration, including 'open-popup' to display a popup menu.  |
-| `hold_action` | [hold_action](#actions)             | -           | Custom hold action configuration, including 'open-popup' to display a popup menu. |
+| Name             | Type                                 | Default     | Description                                                                                                                                              |
+| ---------------- | ------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`            | string                               | `Required*` | The path to a Lovelace view. Ignored if `tap_action` is defined.                                                                                         |
+| `icon`           | string \| [JSTemplate](#jstemplate)  | -           | Material icon to display as this entry icon.                                                                                                             |
+| `icon_selected`  | string \| [JSTemplate](#jstemplate)  | -           | Icon to be displayed when `url` matches the current browser URL                                                                                          |
+| `image`          | string \| [JSTemplate](#jstemplate)  | -           | URL of an image to display as this entry icon.                                                                                                           |
+| `image_selected` | string \| [JSTemplate](#jstemplate)  | -           | Image to be displayed when `url` matches the current browser URL                                                                                         |
+| `badge`          | [Badge](#badge)                      | -           | Badge configuration                                                                                                                                      |
+| `label`          | string \| [JSTemplate](#jstemplate)  | -           | Label to be displayed under the given route if `show_labels` is true                                                                                     |
+| `tap_action`     | [tap_action](#actions)               | -           | Custom tap action configuration, including 'open-popup' to display a popup menu.                                                                         |
+| `hold_action`    | [hold_action](#actions)              | -           | Custom hold action configuration, including 'open-popup' to display a popup menu.                                                                        |
+| `selected`       | boolean \| [JSTemplate](#jstemplate) | -           | Controls whether to display this item as selected or not. If not defined, the selected status will be computed as `item.url == window.location.pathname` |
 
 > **Note**: `url` is required unless `tap_action` is present. If `tap_action` is defined, `url` is ignored.
 
@@ -210,6 +213,8 @@ Apart from using plain javascript, you can access some predefined variables:
 
 - `states` -> Contains the global state of all entities in HomeAssistant. To get the state of a specific entity, use: `states['entity_type.your_entity'].state`.
 - `user` -> Information about the current logged user.
+- `navbar` -> Internal state of the navbar-card. Accessible fields are:
+  - `isDesktop` -> Boolean indicating whether the card is in its desktop variant or not.
 
 Below is an example using JSTemplates for displaying a route only for one user, and a label indicating the number of lights currently on:
 
@@ -231,6 +236,8 @@ routes:
       ]]]
     icon: mdi:lightbulb-outline
     icon_selected: mdi:lightbulb
+    hidden: |
+      [[[ return navbar.isDesktop; ]]]
   - url: /lovelace/devices
     label: Devices
     icon: mdi:devices
@@ -340,6 +347,28 @@ styles: |
 
 ---
 
+### Layout
+
+Configuration options for the navbar layout and behavior.
+
+| Name           | Type                          | Default | Description                                                     |
+| -------------- | ----------------------------- | ------- | --------------------------------------------------------------- |
+| `auto_padding` | [Auto Padding](#auto-padding) | -       | Add padding to your Home Asistant dashboard to prevent overlaps |
+
+#### Auto Padding
+
+Automatically adds padding to your Home Assistnat dashboard to prevent cards from overlapping with `navbar-card`. This eliminates the need for manual CSS padding adjustments in your Home Assistant theme.
+
+| Name         | Type    | Default | Description                                                                  |
+| ------------ | ------- | ------- | ---------------------------------------------------------------------------- |
+| `enabled`    | boolean | `true`  | Whether to automatically add padding to prevent overlaps                     |
+| `desktop_px` | number  | `100`   | Padding in pixels for desktop mode (applied to left/right based on position) |
+| `mobile_px`  | number  | `80`    | Padding in pixels for mobile mode (applied to bottom)                        |
+
+> **Note**: The `desktop_px` padding is automatically applied to the appropriate side based on your navbar's `desktop.position` setting.
+
+---
+
 ### Styles
 
 Custom CSS styles can be applied to the Navbar Card to personalize its appearance and adapt it to your dashboard's design. Simply provide a CSS string targeting the relevant classes to style the navbar to your liking.
@@ -351,7 +380,6 @@ You can check out some examples [here](#examples-with-custom-styles) for inspira
 Here is a breakdown of the CSS classes available for customization:
 
 - `.navbar`: Base component for the navbar.
-
   - `.navbar.desktop`: Styling for the desktop version.
   - `.navbar.desktop.[top | bottom | left | right]`: Specific styles for different positions of the navbar.
   - `.navbar.mobile`: Styling for the mobile version.
@@ -359,23 +387,18 @@ Here is a breakdown of the CSS classes available for customization:
 - `.route`: Represents each route (or item) within the navbar.
 
 - `.button`: Background element for each icon.
-
   - `.button.active`: Applies when a route is selected.
 
 - `.icon`: Refers to the ha-icon component used for displaying icons.
-
   - `.icon.active`: Applies when a route is selected.
 
 - `.image`: Refers to the img component used for displaying route images.
-
   - `.image.active`: Applies when a route is selected.
 
 - `.label`: Text label displayed under the icons (if labels are enabled).
-
   - `.label.active`: Applies when a route is selected.
 
 - `.badge`: Small indicator or badge that appears over the icon (if configured).
-
   - `.badge.active`: Applies when a route is selected.
 
 - `.navbar-popup`: Main container for the popup.
@@ -397,9 +420,30 @@ Here is a breakdown of the CSS classes available for customization:
 
 ### Padding
 
-If you're using the Navbar Card, you might notice it could collide with other cards on your dashboard. A simple way to fix this is by adding some padding to your Home Assistant views. The easiest way to do that is by using [card-mod](https://github.com/thomasloven/lovelace-card-mod) with a [custom theme](https://www.home-assistant.io/integrations/frontend/#themes).
+If you're using the Navbar Card, you might notice it could collide with other cards on your dashboard. The navbar-card now includes an [**automatic padding feature**](#auto-padding) that handles this for you, eliminating the need for manual CSS adjustments.
 
-Here's an example of how you can tweak your theme to adjust the layout for both desktop and mobile:
+#### Automatic Padding (Recommended)
+
+The navbar-card automatically adds appropriate padding to prevent overlaps:
+
+- **Desktop**: Adds padding to the left or right side based on your navbar position
+- **Mobile**: Adds bottom padding to prevent cards from overlapping the bottom navbar
+
+This feature is enabled by default, but you can customize it using the `layout.auto_padding` configuration. [More info here](#auto-padding)
+
+#### Manual Adjustement (Legacy)
+
+<details>
+<summary>If you prefer to handle padding manually or need more control, you can disable automatic padding and use CSS instead:</summary>
+
+```yaml
+type: custom:navbar-card
+layout:
+  auto_padding:
+    enabled: false # Disable automatic padding
+```
+
+Then use [card-mod](https://github.com/thomasloven/lovelace-card-mod) with a [custom theme](https://www.home-assistant.io/integrations/frontend/#themes) to add manual padding:
 
 ```yaml
 your_theme:
@@ -424,6 +468,10 @@ your_theme:
         }
       }
 ```
+
+</details>
+
+---
 
 ### Hiding native tabs
 
@@ -468,7 +516,6 @@ your_theme:
 
 <br>
 
-
 ## 📚 Example Configurations
 
 <details open>
@@ -476,6 +523,11 @@ your_theme:
 
 ```yaml
 type: custom:navbar-card
+layout:
+  auto_padding:
+    enabled: true
+    desktop_px: 100
+    mobile_px: 80
 desktop:
   position: left
   min_width: 768
@@ -621,6 +673,31 @@ styles: |
 </details>
 
 <details>
+<summary>Custom auto-padding configuration</summary>
+
+```yaml
+type: custom:navbar-card
+layout:
+  auto_padding:
+    enabled: true
+    desktop_px: 150 # Extra wide padding for desktop
+    mobile_px: 120 # Extra tall padding for mobile
+desktop:
+  position: right # Padding will be applied to the right
+  show_labels: true
+routes:
+  - url: /lovelace/home
+    label: Home
+    icon: mdi:home-outline
+    icon_selected: mdi:home-assistant
+  - url: /lovelace/devices
+    label: Devices
+    icon: mdi:devices
+```
+
+</details>
+
+<details>
 <summary>Display route only for a given user</summary>
 
 ```yaml
@@ -668,7 +745,38 @@ routes:
 
 </details>
 
+<details>
+<summary>Route with rounded user's image</summary>
 
+```yaml
+type: custom:navbar-card
+routes:
+  - image: |
+      [[[ 
+        return hass.states["person.jose"].attributes.entity_picture
+      ]]]
+    label: More
+    tap_action:
+      action: open-popup
+    popup:
+      - icon: mdi:cog
+        url: /config/dashboard
+      - icon: mdi:hammer
+        url: /developer-tools/yaml
+      - icon: mdi:power
+        tap_action:
+          action: call-service
+          service: homeassistant.restart
+          service_data: {}
+          confirmation:
+            text: Are you sure you want to restart Home Assistant?
+styles: |
+  .image {
+    border-radius: 16px !important;
+  }
+```
+
+</details>
 
 <br>
 
@@ -685,10 +793,9 @@ Need help using `navbar-card`, have ideas, or found a bug? Here's how you can re
 
 - **💬 Have questions, want to share feedback, or just chat?**<br>
   Either start [a discussion on GitHub](https://github.com/joseluis9595/lovelace-navbar-card/discussions) or join the conversation on the [Home Assistant Community Forum
-](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917).
+  ](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917).
 
 Your feedback helps make navbar-card better for everyone. Don’t hesitate to reach out!
-
 
 <br>
 
@@ -700,7 +807,6 @@ Your feedback helps make navbar-card better for everyone. Don’t hesitate to re
 
 If you enjoy using `navbar-card` and want to support its continued development, consider buying me a coffee (or a beer 🍺), or becoming a GitHub Sponsor!
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_a_Beer-fdd734?&logo=buy-me-a-coffee&logoColor=black&style=for-the-badge)](https://www.buymeacoffee.com/joseluis9595)  [![GitHub Sponsors](https://img.shields.io/badge/GitHub_Sponsors-30363d?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/joseluis9595)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_a_Beer-fdd734?&logo=buy-me-a-coffee&logoColor=black&style=for-the-badge)](https://www.buymeacoffee.com/joseluis9595) [![GitHub Sponsors](https://img.shields.io/badge/GitHub_Sponsors-30363d?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/joseluis9595)
 
 Your support means a lot and helps keep the project alive and growing. Thank you! 🙌
-

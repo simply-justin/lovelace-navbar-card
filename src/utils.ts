@@ -1,5 +1,6 @@
 import { HomeAssistant } from 'custom-card-helpers';
-import { DeepPartial } from './types';
+import { DeepPartial, TemplateFunction, NavbarCardPublicState } from './types';
+import { NavbarCard } from './navbar-card';
 
 /**
  * Map string to enum value
@@ -41,31 +42,77 @@ export const processBadgeTemplate = (
 };
 
 /**
+ * Generate a hash for a string
+ *
+ * @param str - String to hash
+ * @returns Hash of the string
+ */
+const generateHash = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+  }
+  return hash.toString();
+};
+
+// Template function cache for performance optimization
+const templateFunctionCache = new Map<string, TemplateFunction>();
+
+// Extract publicly accessible state variables from navbar card
+const extractAccessibleStateVariables = (
+  navbar: NavbarCard,
+): NavbarCardPublicState => {
+  return {
+    isDesktop: navbar._isDesktop ?? false,
+  };
+};
+
+/**
  * Process a template string with Home Assistant states and user context.
  *
  * @param hass - Home Assistant instance
  * @param template - Template string to be processed
  * @returns The processed template result or the original value if not a template
  */
-export const processTemplate = (hass: HomeAssistant, template?: unknown) => {
-  if (!template || !hass) return template;
+export const processTemplate = <T = unknown>(
+  hass: HomeAssistant,
+  navbar: NavbarCard,
+  template?: unknown,
+): T => {
+  if (!template) return template as T;
 
   // Check if template is of type string
-  if (typeof template !== 'string') return template;
+  if (typeof template !== 'string') return template as T;
 
   // Valid template starts with [[ and ends with ]]]
   if (!(template.trim().startsWith('[[[') && template.trim().endsWith(']]]'))) {
-    return template;
+    return template as T;
   }
 
   // Run template against home assistant states
   try {
-    const cleanedTemplate = cleanTemplate(template);
-    const func = new Function('states', 'user', 'hass', cleanedTemplate);
-    return func(hass.states, hass.user, hass);
+    const cleanTemplate = template.replace(/\[\[\[|\]\]\]/g, '');
+    const hashedTemplate = generateHash(cleanTemplate);
+    let func = templateFunctionCache.get(hashedTemplate);
+    if (!func) {
+      func = new Function(
+        'states',
+        'user',
+        'hass',
+        'navbar',
+        cleanTemplate,
+      ) as TemplateFunction;
+      templateFunctionCache.set(hashedTemplate, func);
+    }
+    return func(
+      hass.states,
+      hass.user,
+      hass,
+      extractAccessibleStateVariables(navbar),
+    ) as T;
   } catch (e) {
     console.error(`NavbarCard: Error evaluating template: ${e}`);
-    return template;
+    return template as T;
   }
 };
 

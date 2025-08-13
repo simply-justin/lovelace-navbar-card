@@ -10,6 +10,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { version } from '../package.json';
 import { HomeAssistant, navigate } from 'custom-card-helpers';
 import {
+  DEFAULT_NAVBAR_CONFIG,
   DesktopPosition,
   NavbarCardConfig,
   PopupItem,
@@ -22,7 +23,11 @@ import {
   processBadgeTemplate,
   processTemplate,
 } from './utils';
-import { forceResetRipple, getNavbarTemplates } from './dom-utils';
+import {
+  forceDashboardPadding,
+  forceResetRipple,
+  getNavbarTemplates,
+} from './dom-utils';
 import { getDefaultStyles } from './styles';
 import { Color } from './color';
 import { RippleElement } from './types';
@@ -43,16 +48,6 @@ window.customCards.push({
     'Card with a full-width bottom nav on mobile and a flexible nav on desktop that can be placed on any side of the screen.',
 });
 
-const PROPS_TO_FORCE_UPDATE = [
-  // TODO JLAQ replace this with proper keys instead of hardcoded strings
-  '_config',
-  '_isDesktop',
-  '_inEditDashboardMode',
-  '_inEditCardMode',
-  '_inPreviewMode',
-  '_popup',
-];
-
 const DEFAULT_DESKTOP_POSITION = DesktopPosition.bottom;
 const DOUBLE_TAP_DELAY = 250;
 const HOLD_ACTION_DELAY = 500;
@@ -61,7 +56,7 @@ const HOLD_ACTION_DELAY = 500;
 export class NavbarCard extends LitElement {
   @state() protected hass!: HomeAssistant;
   @state() private _config?: NavbarCardConfig;
-  @state() private _isDesktop?: boolean;
+  @state() _isDesktop?: boolean;
   @state() private _inEditDashboardMode?: boolean;
   @state() private _inEditCardMode?: boolean;
   @state() private _inPreviewMode?: boolean;
@@ -184,27 +179,36 @@ export class NavbarCard extends LitElement {
       }
     });
 
+    // Force dashboard padding
+    forceDashboardPadding({
+      desktop: config.desktop ?? DEFAULT_NAVBAR_CONFIG.desktop,
+      mobile: config.mobile ?? DEFAULT_NAVBAR_CONFIG.mobile,
+      auto_padding:
+        config.layout?.auto_padding ??
+        DEFAULT_NAVBAR_CONFIG.layout?.auto_padding,
+    });
+
     // Store configuration
     this._config = config;
   }
 
-  /**
-   * Manually control whether to re-render or not the card
-   */
-  shouldUpdate(changedProperties: Map<string, unknown>) {
-    for (const propName of changedProperties.keys()) {
-      if (PROPS_TO_FORCE_UPDATE.includes(propName)) {
-        return true;
-      }
-      if (
-        propName === 'hass'
-        // && new Date().getTime() - (this._lastRender ?? 0) > 1000
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // /**
+  //  * Manually control whether to re-render or not the card
+  //  */
+  // shouldUpdate(changedProperties: Map<string, unknown>) {
+  // for (const propName of changedProperties.keys()) {
+  //   if (PROPS_TO_FORCE_UPDATE.includes(propName)) {
+  //     return true;
+  //   }
+  //   if (
+  //     propName === 'hass'
+  //     // && new Date().getTime() - (this._lastRender ?? 0) > 1000
+  //   ) {
+  //     return true;
+  //   }
+  // }
+  // return false;
+  // }
 
   /**
    * Stub configuration to be properly displayed in the "new card"
@@ -262,47 +266,72 @@ export class NavbarCard extends LitElement {
   /* Subcomponents */
   /**********************************************************************/
   private _getRouteIcon(route: RouteItem | PopupItem, isActive: boolean) {
-    return route.image
+    const icon = processTemplate<string>(this.hass, this, route.icon);
+    const image = processTemplate<string>(this.hass, this, route.image);
+    const iconSelected = processTemplate<string>(
+      this.hass,
+      this,
+      route.icon_selected,
+    );
+    const imageSelected = processTemplate<string>(
+      this.hass,
+      this,
+      route.image_selected,
+    );
+
+    return image
       ? html`<img
           class="image ${isActive ? 'active' : ''}"
-          src="${isActive && route.image_selected
-            ? route.image_selected
-            : route.image}"
+          src="${isActive && imageSelected ? imageSelected : image}"
           alt="${route.label || ''}" />`
       : html`<ha-icon
           class="icon ${isActive ? 'active' : ''}"
-          icon="${isActive && route.icon_selected
-            ? route.icon_selected
-            : route.icon}"></ha-icon>`;
+          icon="${isActive && iconSelected ? iconSelected : icon}"></ha-icon>`;
   }
 
   private _renderBadge(route: RouteItem | PopupItem, isRouteActive: boolean) {
-    let showBadge = false;
-    if (route.badge?.show) {
-      showBadge = processTemplate(this.hass, route.badge?.show);
-    } else if (route.badge?.template) {
-      // TODO deprecate this
-      showBadge = processBadgeTemplate(this.hass, route.badge?.template);
+    // Early return if no badge configuration
+    if (!route.badge) {
+      return html``;
     }
 
-    const count = processTemplate(this.hass, route.badge?.count) ?? null;
+    // Cache template evaluations
+    let showBadge = false;
+    if (route.badge.show !== undefined) {
+      showBadge = processTemplate<boolean>(this.hass, this, route.badge.show);
+    } else if (route.badge.template) {
+      // TODO deprecate this
+      showBadge = processBadgeTemplate(this.hass, route.badge.template);
+    }
+
+    if (!showBadge) {
+      return html``;
+    }
+
+    const count =
+      processTemplate<number | null>(this.hass, this, route.badge.count) ??
+      null;
     const hasCount = count != null;
 
     const backgroundColor =
-      processTemplate(this.hass, route.badge?.color) ?? 'red';
-    const contrastingColor =
-      processTemplate(this.hass, route.badge?.textColor) ??
-      new Color(backgroundColor).contrastingColor().hex();
+      processTemplate<string>(this.hass, this, route.badge.color) ?? 'red';
+    const textColor = processTemplate<string>(
+      this.hass,
+      this,
+      route.badge.textColor,
+    );
 
-    return showBadge
-      ? html`<div
-          class="badge ${isRouteActive ? 'active' : ''} ${hasCount
-            ? 'with-counter'
-            : ''}"
-          style="background-color: ${backgroundColor}; color: ${contrastingColor}">
-          ${count}
-        </div>`
-      : html``;
+    // Only create Color object if textColor is not provided, using cached version
+    const contrastingColor =
+      textColor ?? Color.from(backgroundColor).contrastingColor().hex();
+
+    return html`<div
+      class="badge ${isRouteActive ? 'active' : ''} ${hasCount
+        ? 'with-counter'
+        : ''}"
+      style="background-color: ${backgroundColor}; color: ${contrastingColor}">
+      ${count}
+    </div>`;
   }
 
   /**********************************************************************/
@@ -374,14 +403,21 @@ export class NavbarCard extends LitElement {
    * Render route item
    */
   private _renderRoute = (route: RouteItem) => {
+    // Cache template evaluations to avoid redundant processing
     const isActive =
       route.selected != null
-        ? processTemplate(this.hass, route.selected)
+        ? processTemplate<boolean>(this.hass, this, route.selected)
         : window.location.pathname == route.url;
 
-    if (processTemplate(this.hass, route.hidden)) {
+    const isHidden = processTemplate<boolean>(this.hass, this, route.hidden);
+    if (isHidden) {
       return null;
     }
+
+    // Cache label processing
+    const label = this._shouldShowLabels(false)
+      ? (processTemplate<string>(this.hass, this, route.label) ?? ' ')
+      : null;
 
     return html`
       <div
@@ -399,10 +435,8 @@ export class NavbarCard extends LitElement {
           <ha-ripple></ha-ripple>
         </div>
 
-        ${this._shouldShowLabels(false)
-          ? html`<div class="label ${isActive ? 'active' : ''}">
-              ${processTemplate(this.hass, route.label) ?? ' '}
-            </div>`
+        ${label
+          ? html`<div class="label ${isActive ? 'active' : ''}">${label}</div>`
           : html``}
         ${this._renderBadge(route, isActive)}
       </div>
@@ -520,8 +554,7 @@ export class NavbarCard extends LitElement {
       );
 
     this._popup = html`
-      <div
-        class="navbar-popup-backdrop"</div>
+      <div class="navbar-popup-backdrop"></div>
       <div
         class="
           navbar-popup
@@ -532,28 +565,39 @@ export class NavbarCard extends LitElement {
         style="${style}">
         ${popupItems
           .map((popupItem, index) => {
-            if (processTemplate(this.hass, popupItem.hidden)) {
+            const isActive =
+              popupItem.selected != null
+                ? processTemplate<boolean>(this.hass, this, popupItem.selected)
+                : window.location.pathname == popupItem.url;
+            const isHidden = processTemplate<boolean>(
+              this.hass,
+              this,
+              popupItem.hidden,
+            );
+            if (isHidden) {
               return null;
             }
+
+            const label = this._shouldShowLabels(true)
+              ? (processTemplate<string>(this.hass, this, popupItem.label) ??
+                ' ')
+              : null;
 
             return html`<div
               class="
               popup-item 
               ${popupDirectionClassName}
               ${labelPositionClassName}
+              ${isActive ? 'active' : ''}
             "
               style="--index: ${index}"
               @click=${(e: MouseEvent) =>
                 this._handlePointerUp(e as PointerEvent, popupItem, true)}>
               <div class="button">
-                ${this._getRouteIcon(popupItem, false)}
+                ${this._getRouteIcon(popupItem, isActive)}
                 <md-ripple></md-ripple>
               </div>
-              ${this._shouldShowLabels(true)
-                ? html`<div class="label">
-                    ${processTemplate(this.hass, popupItem.label) ?? ' '}
-                  </div>`
-                : html``}
+              ${label ? html`<div class="label">${label}</div>` : html``}
               ${this._renderBadge(popupItem, false)}
             </div>`;
           })
@@ -780,6 +824,14 @@ export class NavbarCard extends LitElement {
         hapticFeedback();
       }
       fireDOMEvent(this, 'hass-toggle-menu', { bubbles: true, composed: true });
+    } else if (action?.action === 'show-notifications') {
+      if (this._shouldTriggerHaptic(actionType)) {
+        hapticFeedback();
+      }
+      fireDOMEvent(this, 'hass-show-notifications', {
+        bubbles: true,
+        composed: true,
+      });
     } else if (action?.action === 'navigate-back') {
       if (this._shouldTriggerHaptic(actionType, true)) {
         hapticFeedback();
@@ -838,16 +890,27 @@ export class NavbarCard extends LitElement {
     const deviceModeClassName = this._isDesktop ? 'desktop' : 'mobile';
     const editModeClassname = isEditMode ? 'edit-mode' : '';
 
+    // Cache hidden property evaluations
+    const isDesktopHidden = processTemplate<boolean>(
+      this.hass,
+      this,
+      desktopHidden,
+    );
+    const isMobileHidden = processTemplate<boolean>(
+      this.hass,
+      this,
+      mobileHidden,
+    );
+
     // Handle hidden props
     if (
       !isEditMode &&
-      ((this._isDesktop && !!processTemplate(this.hass, desktopHidden)) ||
-        (!this._isDesktop && !!processTemplate(this.hass, mobileHidden)))
+      ((this._isDesktop && !!isDesktopHidden) ||
+        (!this._isDesktop && !!isMobileHidden))
     ) {
       return html``;
     }
 
-    // TODO use HA ripple effect for icon button
     return html`
       <ha-card
         class="navbar ${editModeClassname} ${deviceModeClassName} ${desktopPositionClassname}">
