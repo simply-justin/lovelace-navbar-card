@@ -3,6 +3,7 @@
 import { LitElement, TemplateResult, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
+  DEFAULT_NAVBAR_CONFIG,
   DesktopPosition,
   ExtendedActionConfig,
   LabelVisibilityConfig,
@@ -677,6 +678,43 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
+  renderLayoutEditor() {
+    // TODO JLAQ Add some kind of helper / link to documentation
+    return html`
+      <ha-expansion-panel outlined>
+        <h4 slot="header">
+          <ha-icon icon="mdi:view-grid"></ha-icon>
+          Layout
+        </h4>
+        <div class="editor-section">
+          <label class="editor-label">Auto padding</label>
+          ${this.makeSwitch({
+            label: 'Enable auto padding',
+            configKey: 'layout.auto_padding',
+            defaultValue: DEFAULT_NAVBAR_CONFIG.layout?.auto_padding?.enabled,
+          })}
+          ${this.makeTextInput({
+            label: 'Desktop padding',
+            configKey: 'layout.auto_padding.desktop_px',
+            type: 'number',
+            suffix: 'px',
+            placeholder:
+              DEFAULT_NAVBAR_CONFIG.layout?.auto_padding?.desktop_px?.toString(),
+            helper: 'Padding for desktop mode. 0 to disable.',
+          })}
+          ${this.makeTextInput({
+            label: 'Mobile padding',
+            configKey: 'layout.auto_padding.mobile_px',
+            type: 'number',
+            suffix: 'px',
+            placeholder:
+              DEFAULT_NAVBAR_CONFIG.layout?.auto_padding?.mobile_px?.toString(),
+            helper: 'Padding for mobile mode. 0 to disable.',
+          })}
+        </div></ha-expansion-panel
+    `;
+  }
+
   renderHapticEditor() {
     const hapticRawValue = genericGetProperty(this._config, 'haptic');
     const hapticValue: boolean | undefined =
@@ -970,7 +1008,8 @@ export class NavbarCardEditor extends LitElement {
           : html``}
         ${this.renderTemplateEditor()} ${this.renderRoutesEditor()}
         ${this.renderDesktopEditor()} ${this.renderMobileEditor()}
-        ${this.renderHapticEditor()} ${this.renderStylesEditor()}
+        ${this.renderLayoutEditor()} ${this.renderHapticEditor()}
+        ${this.renderStylesEditor()}
       </div>
     `;
   }
