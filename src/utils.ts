@@ -60,10 +60,10 @@ const templateFunctionCache = new Map<string, TemplateFunction>();
 
 // Extract publicly accessible state variables from navbar card
 const extractAccessibleStateVariables = (
-  navbar: NavbarCard,
+  navbar?: NavbarCard,
 ): NavbarCardPublicState => {
   return {
-    isDesktop: navbar._isDesktop ?? false,
+    isDesktop: navbar?._isDesktop ?? false,
   };
 };
 
@@ -76,7 +76,7 @@ const extractAccessibleStateVariables = (
  */
 export const processTemplate = <T = unknown>(
   hass: HomeAssistant,
-  navbar: NavbarCard,
+  navbar?: NavbarCard,
   template?: unknown,
 ): T => {
   if (!template) return template as T;

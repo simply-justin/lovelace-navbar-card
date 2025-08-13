@@ -60,7 +60,7 @@ export type RouteItem = RouteItemBase & {
 };
 
 // Labels visibility granular configuration
-type LabelVisibilityConfig = boolean | 'popup_only' | 'routes_only';
+export type LabelVisibilityConfig = boolean | 'popup_only' | 'routes_only';
 
 // Haptic configuration
 export type HapticConfig = {
@@ -96,7 +96,6 @@ export type NavbarCardConfig = {
   styles?: string;
   haptic?: boolean | HapticConfig;
 };
-
 
 export const DEFAULT_NAVBAR_CONFIG: NavbarCardConfig = {
   routes: [],

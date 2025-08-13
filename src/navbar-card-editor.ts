@@ -51,7 +51,6 @@ const STRING_JS_TEMPLATE_HELPER = html`${GENERIC_JS_TEMPLATE_HELPER}<br />Must
 export class NavbarCardEditor extends LitElement {
   @property({ attribute: false }) public hass: any;
   @state() private _config: NavbarCardConfig = { routes: [] };
-  @state() _visibleSections: Record<string, boolean> = {};
 
   /**********************************************************************/
   /* Config mutation functions */
@@ -408,7 +407,9 @@ export class NavbarCardEditor extends LitElement {
               ${item.image != undefined
                 ? html`<img src="${item.image}" class="route-header-image" />`
                 : html`<ha-icon icon="${item.icon}"></ha-icon>`}
-              ${item.label ? processTemplate(this.hass, item.label) : ''}
+              ${item.label
+                ? processTemplate(this.hass, undefined, item.label)
+                : ''}
             </span>
 
             <ha-icon-button
@@ -979,10 +980,10 @@ export class NavbarCardEditor extends LitElement {
       popup.splice(popupIndex, 1);
       routes[routeIndex] = {
         ...routes[routeIndex],
-        popup: popup.length === 0 ? null : popup,
+        popup: popup.length === 0 ? undefined : popup,
       };
     }
 
-    this.updateConfig({ routes: routes.length === 0 ? null : routes });
+    this.updateConfig({ routes: routes.length === 0 ? undefined : routes });
   };
 }
