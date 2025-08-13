@@ -336,6 +336,26 @@ const EDITOR_STYLES = css`
     ha-textfield {
       width: 100%;
     }
+
+    ha-button {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .navbar-template-toggle-button {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0px !important;
+      border-radius: 99px;
+      font-size: 0.85em;
+      font-weight: 600;
+      border: 0px;
+      padding: 4px 8px !important;
+      cursor: pointer;
+    }
   }
   .editor-section {
     display: flex;

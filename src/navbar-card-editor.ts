@@ -176,12 +176,15 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
-  makeStringOrTemplateEditor(options: {
+  // TODO JLAQ properly add types to this function based on fieldType
+  makeTemplatableField(options: {
     label: string;
     configKey: DotNotationKeys<NavbarCardConfig>;
+    fieldType: 'string' | 'icon';
     tooltip?: string | TemplateResult;
     templateHelper?: string | TemplateResult;
     textHelper?: string | TemplateResult;
+    placeholder?: string;
   }) {
     const value = genericGetProperty(this._config, options.configKey) as
       | string
@@ -204,10 +207,13 @@ export class NavbarCardEditor extends LitElement {
       this.updateConfigByKey(options.configKey, newValue);
     };
 
+    const inputText =
+      options.fieldType === 'icon'
+        ? 'Switch to icon picker'
+        : 'Switch to plain text';
+
     // Button label and icon
-    const buttonLabel = isTemplate
-      ? 'Switch to plain text'
-      : 'Switch to template';
+    const buttonLabel = isTemplate ? inputText : 'Switch to template';
     const buttonIcon = isTemplate ? 'mdi:format-text' : 'mdi:code-braces';
 
     // Compose the toggle button
@@ -216,6 +222,7 @@ export class NavbarCardEditor extends LitElement {
         @click=${toggleMode}
         outlined
         size="small"
+        variant="neutral"
         appearance="plain"
         class="navbar-template-toggle-button">
         <ha-icon slot="start" icon="${buttonIcon}"></ha-icon>
@@ -246,12 +253,18 @@ export class NavbarCardEditor extends LitElement {
             >
             ${toggleButton}
           </div>
-          ${this.makeTextInput({
-            label: '',
-            configKey: options.configKey,
-            tooltip: options.tooltip as string | undefined,
-            helper: options.textHelper,
-          })}
+          ${options.fieldType === 'string'
+            ? this.makeTextInput({
+                label: '',
+                configKey: options.configKey,
+                tooltip: options.tooltip as string | undefined,
+                helper: options.textHelper,
+                placeholder: options.placeholder,
+              })
+            : this.makeIconPicker({
+                label: '',
+                configKey: options.configKey,
+              })}
         </div>
       `;
     }
@@ -447,41 +460,34 @@ export class NavbarCardEditor extends LitElement {
               </div>
             </div>
 
-            ${this.makeStringOrTemplateEditor({
+            ${this.makeTemplatableField({
               label: 'Label',
+              fieldType: 'string',
               configKey: `${baseConfigKey}.label` as any,
               templateHelper: STRING_JS_TEMPLATE_HELPER,
             })}
-
-            <div>
-              <label class="editor-label">Route icon</label>
-              <div class="route-grid">
-                ${this.makeIconPicker({
-                  label: 'Icon',
-                  configKey: `${baseConfigKey}.icon` as any,
-                })}
-                ${this.makeIconPicker({
-                  label: 'Icon selected',
-                  configKey: `${baseConfigKey}.icon_selected` as any,
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label class="editor-label">Route image</label>
-              <div class="route-grid">
-                ${this.makeTextInput({
-                  label: 'Image',
-                  configKey: `${baseConfigKey}.image` as any,
-                  placeholder: 'URL of the image',
-                })}
-                ${this.makeTextInput({
-                  label: 'Image selected',
-                  configKey: `${baseConfigKey}.image_selected` as any,
-                  placeholder: 'URL of the image',
-                })}
-              </div>
-            </div>
+            ${this.makeTemplatableField({
+              fieldType: 'icon',
+              label: 'Icon',
+              configKey: `${baseConfigKey}.icon` as any,
+            })}
+            ${this.makeTemplatableField({
+              fieldType: 'icon',
+              label: 'Icon selected',
+              configKey: `${baseConfigKey}.icon_selected` as any,
+            })}
+            ${this.makeTemplatableField({
+              fieldType: 'string',
+              label: 'Image',
+              configKey: `${baseConfigKey}.image` as any,
+              placeholder: 'URL of the image',
+            })}
+            ${this.makeTemplatableField({
+              fieldType: 'string',
+              label: 'Image selected',
+              configKey: `${baseConfigKey}.image_selected` as any,
+              placeholder: 'URL of the image',
+            })}
 
             <div class="route-divider"></div>
 
@@ -491,7 +497,8 @@ export class NavbarCardEditor extends LitElement {
                 Badge
               </h5>
               <div class="editor-section">
-                ${this.makeStringOrTemplateEditor({
+                ${this.makeTemplatableField({
+                  fieldType: 'string',
                   label: 'Color',
                   configKey: `${baseConfigKey}.badge.color` as any,
                   textHelper:
@@ -503,12 +510,14 @@ export class NavbarCardEditor extends LitElement {
                   configKey: `${baseConfigKey}.badge.show` as any,
                   helper: BOOLEAN_JS_TEMPLATE_HELPER,
                 })}
-                ${this.makeStringOrTemplateEditor({
+                ${this.makeTemplatableField({
+                  fieldType: 'string',
                   label: 'Count',
                   configKey: `${baseConfigKey}.badge.count` as any,
                   templateHelper: STRING_JS_TEMPLATE_HELPER,
                 })}
-                ${this.makeStringOrTemplateEditor({
+                ${this.makeTemplatableField({
+                  fieldType: 'string',
                   label: 'TextColor',
                   configKey: `${baseConfigKey}.badge.textColor` as any,
                   templateHelper: STRING_JS_TEMPLATE_HELPER,
@@ -552,12 +561,14 @@ export class NavbarCardEditor extends LitElement {
               </h5>
               <div class="editor-section">
                 ${this.makeTemplateEditor({
+                  // TODO JLAQ maybe replace with a templateSwitchEditor
                   label: 'Hidden',
                   configKey: `${baseConfigKey}.hidden` as any,
                   helper: BOOLEAN_JS_TEMPLATE_HELPER,
                 })}
                 ${!isPopup
                   ? this.makeTemplateEditor({
+                      // TODO JLAQ maybe replace with a templateSwitchEditor
                       label: 'Selected',
                       configKey: `${baseConfigKey}.selected` as any,
                       helper: BOOLEAN_JS_TEMPLATE_HELPER,
@@ -746,6 +757,7 @@ export class NavbarCardEditor extends LitElement {
             configKey: 'desktop.show_labels',
           })}
           ${this.makeTemplateEditor({
+            // TODO JLAQ maybe replace with a templateSwitchEditor
             label: 'Hidden',
             configKey: 'desktop.hidden',
             helper: BOOLEAN_JS_TEMPLATE_HELPER,
@@ -774,6 +786,7 @@ export class NavbarCardEditor extends LitElement {
             configKey: 'mobile.show_labels',
           })}
           ${this.makeTemplateEditor({
+            // TODO JLAQ maybe replace with a templateSwitchEditor
             label: 'Hidden',
             configKey: 'mobile.hidden',
             helper: BOOLEAN_JS_TEMPLATE_HELPER,
