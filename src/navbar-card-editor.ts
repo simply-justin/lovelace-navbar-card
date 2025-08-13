@@ -101,9 +101,13 @@ export class NavbarCardEditor extends LitElement {
     items: { label: string; value: T }[];
     configKey: DotNotationKeys<NavbarCardConfig>;
     disabled?: boolean;
+    helper?: string | TemplateResult;
+    helperPersistent?: boolean;
   }) {
     return html`
       <ha-combo-box
+        helper=${options.helper}
+        helperPersistent=${options.helperPersistent}
         label=${options.label}
         .items=${options.items}
         .value=${genericGetProperty(this._config, options.configKey)}
