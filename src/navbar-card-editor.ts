@@ -25,6 +25,7 @@ import {
   wrapTemplate,
 } from './utils';
 import { getEditorStyles } from './styles';
+import { getNavbarTemplates } from './dom-utils';
 
 enum HAActions {
   tap_action = 'tap_action',
@@ -616,16 +617,21 @@ export class NavbarCardEditor extends LitElement {
   /**********************************************************************/
 
   renderTemplateEditor() {
+    const availableTemplates = getNavbarTemplates();
     return html`
       <ha-expansion-panel outlined>
         <h4 slot="header">
           <ha-icon icon="mdi:bookmark-outline"></ha-icon>
-          Template
+          Navbar template
         </h4>
         <div class="editor-section">
-          ${this.makeTextInput({
+          ${this.makeComboBox({
             label: 'Template',
             configKey: 'template',
+            items: Object.entries(availableTemplates ?? {}).map(([key]) => ({
+              label: key,
+              value: key,
+            })),
             helper: html`Reusable template name used for this card.
               <a
                 href="https://github.com/joseluis9595/lovelace-navbar-card?tab=readme-ov-file#template"
