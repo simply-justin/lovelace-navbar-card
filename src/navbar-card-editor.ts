@@ -212,8 +212,14 @@ export class NavbarCardEditor extends LitElement {
 
     // Compose the toggle button
     const toggleButton = html`
-      <ha-button @click=${toggleMode} outlined style="margin-left: 0.5em;">
-        <ha-icon icon="${buttonIcon}"></ha-icon>&nbsp;${buttonLabel}
+      <ha-button
+        @click=${toggleMode}
+        outlined
+        size="small"
+        appearance="plain"
+        class="navbar-template-toggle-button">
+        <ha-icon slot="start" icon="${buttonIcon}"></ha-icon>
+        <span>${buttonLabel}</span>
       </ha-button>
     `;
 
@@ -314,7 +320,8 @@ export class NavbarCardEditor extends LitElement {
     text: string;
   }) {
     return html`<ha-button @click=${options.onClick} outlined hasTrailingIcon>
-      <ha-icon icon=${options.icon}></ha-icon>&nbsp;${options.text}
+      <ha-icon slot="start" icon=${options.icon}></ha-icon>
+      <span>${options.text}</span>
     </ha-button>`;
   }
 
@@ -580,7 +587,8 @@ export class NavbarCardEditor extends LitElement {
                         style="margin-bottom: 1em;"
                         outlined
                         hasTrailingIcon>
-                        <ha-icon icon="mdi:plus"></ha-icon>&nbsp;Add ${label}
+                        <ha-icon slot="start" icon="mdi:plus"></ha-icon>
+                        <span>Add ${label}</span>
                       </ha-button>
                     `}
               `;
