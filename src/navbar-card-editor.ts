@@ -901,6 +901,7 @@ export class NavbarCardEditor extends LitElement {
       { label: 'Open Popup', value: 'open-popup' },
       { label: 'Navigate Back', value: 'navigate-back' },
       { label: 'Toggle sidebar', value: 'toggle-menu' },
+      { label: 'Toggle notifications menu', value: 'show-notifications' },
     ];
 
     const raw = genericGetProperty(
