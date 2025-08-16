@@ -100,20 +100,30 @@ export const forceDashboardPadding = (options?: {
   const desktopPaddingPx =
     options?.auto_padding?.desktop_px ??
     DEFAULT_NAVBAR_CONFIG.layout?.auto_padding?.desktop_px;
-  const desktopPadding =
-    options?.desktop?.position === 'left'
-      ? `padding-left: ${desktopPaddingPx}px !important;`
-      : options?.desktop?.position === 'right'
-        ? `padding-right: ${desktopPaddingPx}px !important;`
-        : undefined;
-  if (desktopPadding) {
+
+  if (['left', 'right'].includes(options?.desktop?.position ?? '')) {
     cssText += `
-        @media (min-width: ${desktopMinWidth}px) {
-          :not(.edit-mode) > #view {
-            ${desktopPadding}
+      @media (min-width: ${desktopMinWidth}px) {
+       :not(.edit-mode) > #view {
+            padding-${options?.desktop?.position}: ${desktopPaddingPx}px !important;
           }
+      }
+    `;
+  } else if (
+    options?.desktop?.position === 'bottom' ||
+    options?.desktop?.position === 'top'
+  ) {
+    cssText += `
+      @media (min-width: ${desktopMinWidth}px) {
+        :not(.edit-mode) > hui-view:${options?.desktop?.position === 'top' ? 'before' : 'after'} {
+          content: "";
+          display: block;
+          height: ${desktopPaddingPx}px;  
+          width: 100%;
+          background-color: transparent; 
         }
-      `;
+      }
+    `;
   }
 
   // Mobile padding
@@ -143,3 +153,41 @@ export const forceDashboardPadding = (options?: {
     styleEl.textContent = cssText;
   }
 };
+
+type EventConstructorMap = {
+  Event: [Event, EventInit];
+  KeyboardEvent: [KeyboardEvent, KeyboardEventInit];
+  MouseEvent: [MouseEvent, MouseEventInit];
+  TouchEvent: [TouchEvent, TouchEventInit];
+};
+
+/**
+ * Fire a DOM event on a node.
+ *
+ * @param node - The node to fire the event on.
+ * @param type - The type of event to fire.
+ * @param options - The options for the event.
+ * @param detailOverride - The detail to override the event with.
+ * @param EventConstructor - The constructor for the event.
+ */
+export function fireDOMEvent<T extends keyof EventConstructorMap = 'Event'>(
+  node: HTMLElement | Window,
+  type: string,
+  options?: EventConstructorMap[T][1],
+  detailOverride?: unknown,
+  EventConstructor?: new (
+    type: string,
+    options?: EventConstructorMap[T][1],
+  ) => EventConstructorMap[T][0],
+): EventConstructorMap[T][0] {
+  const constructor = EventConstructor || Event;
+  const event = new constructor(type, options) as EventConstructorMap[T][0];
+
+  if (detailOverride !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (event as any).detail = detailOverride;
+  }
+
+  node.dispatchEvent(event);
+  return event;
+}
