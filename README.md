@@ -1,10 +1,10 @@
 # Navbar Card
 
-[![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
+[![Buy me a beer](https://img.shields.io/badge/Support-Buy%20me%20a%20beer-fdd734?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/joseluis9595)
 [![Last commit](https://img.shields.io/github/last-commit/joseluis9595/lovelace-navbar-card)](#)
 ![Downloads](https://img.shields.io/github/downloads/joseluis9595/lovelace-navbar-card/total)
+[![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
 [![HA Community forum](https://img.shields.io/badge/Home%20Assistant-Community%20Forum-319fee?logo=home-assistant)](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917)
-[![Buy me a beer](https://img.shields.io/badge/Support-Buy%20me%20a%20beer-fdd734?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/joseluis9595)
 
 <img width="1282" height="478" alt="navbar-card-github" src="https://github.com/user-attachments/assets/11c383ad-bdc1-4254-b6b0-c88a5341ecc0" />
 
