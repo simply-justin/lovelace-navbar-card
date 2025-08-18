@@ -1,10 +1,10 @@
 # Navbar Card
 
-[![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
+[![Buy me a beer](https://img.shields.io/badge/Support-Buy%20me%20a%20beer-fdd734?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/joseluis9595)
 [![Last commit](https://img.shields.io/github/last-commit/joseluis9595/lovelace-navbar-card)](#)
 ![Downloads](https://img.shields.io/github/downloads/joseluis9595/lovelace-navbar-card/total)
+[![Version](https://img.shields.io/github/v/release/joseluis9595/lovelace-navbar-card)](#)
 [![HA Community forum](https://img.shields.io/badge/Home%20Assistant-Community%20Forum-319fee?logo=home-assistant)](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917)
-[![Buy me a beer](https://img.shields.io/badge/Support-Buy%20me%20a%20beer-fdd734?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/joseluis9595)
 
 <img width="1282" height="478" alt="navbar-card-github" src="https://github.com/user-attachments/assets/11c383ad-bdc1-4254-b6b0-c88a5341ecc0" />
 
@@ -147,12 +147,14 @@ Routes represents an array of clickable icons that redirects to a given path. Ea
 
 Apart from the [standard Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) (navigate, call-service, etc.), `navbar-card` supports some additional custom actions:
 
-| Action               | Description                                                | Required Parameters |
-| -------------------- | ---------------------------------------------------------- | ------------------- |
-| `open-popup`         | Opens the popup menu defined in the route                  | None                |
-| `toggle-menu`        | Opens the native HA side menu                              | None                |
-| `show-notifications` | Opens the native HA notifications drawer                   | None                |
-| `navigate-back`      | Navigates back to the previous page in the browser history | None                |
+| Action               | Description                                                | Required Parameters                     |
+| -------------------- | ---------------------------------------------------------- | --------------------------------------- |
+| `open-popup`         | Opens the popup menu defined in the route                  | None                                    |
+| `toggle-menu`        | Opens the native HA side menu                              | None                                    |
+| `show-notifications` | Opens the native HA notifications drawer                   | None                                    |
+| `quickbar`           | Opens the native HA quickbar                               | `mode: entities \| commands \| devices` |
+| `navigate-back`      | Navigates back to the previous page in the browser history | None                                    |
+| `open-edit-mode`     | Opens the current dashboard in edit mode                   | None                                    |
 
 Example:
 
@@ -165,8 +167,14 @@ routes:
     icon: mdi:lightbulb-outline
     tap_action:
       action: open-popup # Will open the popup menu defined for this route
+    double_tap_action:
+      action: quickbar # Will open the native HA quickbar
+      mode: entities
     hold_action:
       action: toggle-menu # Will open the native HA side menu
+  - icon: mdi:pencil
+    tap_action:
+      action: open-edit-mode
 ```
 
 #### Badge
@@ -268,12 +276,14 @@ Specific configuration for desktop mode.
 
 Specific configuration for mobile mode.
 
-<img width="400" height="96" alt="navbar-card_mobile" src="https://github.com/user-attachments/assets/cefed0af-3c52-4ab2-90fa-0e277a35df4d" />
+<img width="785" height="108" alt="navbar-card_mobile" src="https://github.com/user-attachments/assets/b8134d65-d237-412a-9c0b-dfc9c009de46" />
 
-| Name          | Type                                     | Default | Description                                       |
-| ------------- | ---------------------------------------- | ------- | ------------------------------------------------- |
-| `show_labels` | boolean \| `popup_only` \| `routes_only` | `false` | Whether or not to display labels under each route |
-| `hidden`      | boolean \| [JSTemplate](#jstemplate)     | `false` | Set to true to hide the navbar on mobile devices  |
+
+| Name          | Type                                     | Default  | Description                                                                                                             |
+| ------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `show_labels` | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                                                                       |
+| `hidden`      | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on mobile devices                                                                        |
+| `mode`        | `docked` \| `floating`                   | `docked` | Choose visualization mode on mobile devices. `docked` for default experience, `floating` for desktop-like visualization |
 
 ---
 
@@ -383,6 +393,7 @@ Here is a breakdown of the CSS classes available for customization:
   - `.navbar.desktop`: Styling for the desktop version.
   - `.navbar.desktop.[top | bottom | left | right]`: Specific styles for different positions of the navbar.
   - `.navbar.mobile`: Styling for the mobile version.
+  - `.navbar.mobile.floating`: Styling for the mobile version when using `floating` mode.
 
 - `.route`: Represents each route (or item) within the navbar.
 

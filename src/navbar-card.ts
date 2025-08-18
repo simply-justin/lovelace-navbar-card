@@ -6,7 +6,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { version } from '../package.json';
 import { HomeAssistant, navigate } from 'custom-card-helpers';
 import {
@@ -14,23 +14,25 @@ import {
   DesktopPosition,
   NavbarCardConfig,
   PopupItem,
+  QuickbarActionConfig,
   RouteItem,
 } from './config';
+import { RippleElement } from './types';
 import {
-  fireDOMEvent,
   hapticFeedback,
   mapStringToEnum,
   processBadgeTemplate,
   processTemplate,
 } from './utils';
 import {
+  fireDOMEvent,
   forceDashboardPadding,
+  forceOpenEditMode,
   forceResetRipple,
   getNavbarTemplates,
 } from './dom-utils';
 import { getDefaultStyles } from './styles';
 import { Color } from './color';
-import { RippleElement } from './types';
 
 declare global {
   interface Window {
@@ -54,7 +56,7 @@ const HOLD_ACTION_DELAY = 500;
 
 @customElement('navbar-card')
 export class NavbarCard extends LitElement {
-  @state() protected hass!: HomeAssistant;
+  @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: NavbarCardConfig;
   @state() _isDesktop?: boolean;
   @state() private _inEditDashboardMode?: boolean;
@@ -788,6 +790,18 @@ export class NavbarCard extends LitElement {
     }
   };
 
+  private _chooseKeyForQuickbar = (action: QuickbarActionConfig) => {
+    switch (action.mode) {
+      case 'devices':
+        return 'd';
+      case 'entities':
+        return 'e';
+      case 'commands':
+      default:
+        return 'c';
+    }
+  };
+
   /**
    * Generic handler for tap, hold, and double tap actions.
    */
@@ -809,57 +823,99 @@ export class NavbarCard extends LitElement {
       this._closePopup();
     }
 
-    if (!isPopupItem && action?.action === 'open-popup') {
-      const popupItems = route.popup ?? route.submenu;
-      if (!popupItems) {
-        console.error('No popup items found for route:', route);
-      } else {
+    // Handle different action types
+    switch (action?.action) {
+      case 'open-popup':
+        if (!isPopupItem) {
+          const popupItems = route.popup ?? route.submenu;
+          if (!popupItems) {
+            console.error('No popup items found for route:', route);
+          } else {
+            if (this._shouldTriggerHaptic(actionType)) {
+              hapticFeedback();
+            }
+            this._openPopup(popupItems, target);
+          }
+        }
+        break;
+
+      case 'toggle-menu':
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
-        this._openPopup(popupItems, target);
-      }
-    } else if (action?.action === 'toggle-menu') {
-      if (this._shouldTriggerHaptic(actionType)) {
-        hapticFeedback();
-      }
-      fireDOMEvent(this, 'hass-toggle-menu', { bubbles: true, composed: true });
-    } else if (action?.action === 'show-notifications') {
-      if (this._shouldTriggerHaptic(actionType)) {
-        hapticFeedback();
-      }
-      fireDOMEvent(this, 'hass-show-notifications', {
-        bubbles: true,
-        composed: true,
-      });
-    } else if (action?.action === 'navigate-back') {
-      if (this._shouldTriggerHaptic(actionType, true)) {
-        hapticFeedback();
-      }
-      window.history.back();
-    } else if (action != null) {
-      if (this._shouldTriggerHaptic(actionType)) {
-        hapticFeedback();
-      }
-      setTimeout(() => {
-        fireDOMEvent(
+        fireDOMEvent(this, 'hass-toggle-menu', {
+          bubbles: true,
+          composed: true,
+        });
+        break;
+
+      case 'quickbar':
+        if (this._shouldTriggerHaptic(actionType)) {
+          hapticFeedback();
+        }
+        fireDOMEvent<'KeyboardEvent'>(
           this,
-          'hass-action',
-          { bubbles: true, composed: true },
+          'keydown',
           {
-            action: actionType,
-            config: {
-              [`${actionType}_action`]: action,
-            },
+            bubbles: true,
+            composed: true,
+            key: this._chooseKeyForQuickbar(action),
           },
+          undefined,
+          KeyboardEvent,
         );
-      }, 10);
-    } else if (actionType === 'tap' && route.url) {
-      // Handle default navigation for tap action if no specific action is defined
-      if (this._shouldTriggerHaptic(actionType, true)) {
-        hapticFeedback();
-      }
-      navigate(this, route.url);
+        break;
+
+      case 'show-notifications':
+        if (this._shouldTriggerHaptic(actionType)) {
+          hapticFeedback();
+        }
+        fireDOMEvent(this, 'hass-show-notifications', {
+          bubbles: true,
+          composed: true,
+        });
+        break;
+
+      case 'navigate-back':
+        if (this._shouldTriggerHaptic(actionType, true)) {
+          hapticFeedback();
+        }
+        window.history.back();
+        break;
+
+      case 'open-edit-mode':
+        if (this._shouldTriggerHaptic(actionType)) {
+          hapticFeedback();
+        }
+        forceOpenEditMode();
+        break;
+
+      default:
+        if (action != null) {
+          if (this._shouldTriggerHaptic(actionType)) {
+            hapticFeedback();
+          }
+          setTimeout(() => {
+            fireDOMEvent(
+              this,
+              'hass-action',
+              { bubbles: true, composed: true },
+              {
+                action: actionType,
+                config: {
+                  [`${actionType}_action`]: action,
+                },
+              },
+            );
+          }, 10);
+        } else if (actionType === 'tap' && route.url) {
+          // Handle default navigation for tap action if no specific action is defined
+          if (this._shouldTriggerHaptic(actionType, true)) {
+            hapticFeedback();
+          }
+          navigate(this, route.url);
+        }
+        break;
     }
   };
 
@@ -876,9 +932,6 @@ export class NavbarCard extends LitElement {
     const { position: desktopPosition, hidden: desktopHidden } = desktop ?? {};
     const { hidden: mobileHidden } = mobile ?? {};
 
-    // Keep last render timestamp for debounced state updates
-    this._lastRender = new Date().getTime();
-
     // Check visualization modes
     const isEditMode =
       this._inEditDashboardMode || this._inPreviewMode || this._inEditCardMode;
@@ -889,6 +942,7 @@ export class NavbarCard extends LitElement {
       DEFAULT_DESKTOP_POSITION;
     const deviceModeClassName = this._isDesktop ? 'desktop' : 'mobile';
     const editModeClassname = isEditMode ? 'edit-mode' : '';
+    const mobileModeClassname = mobile?.mode === 'floating' ? 'floating' : '';
 
     // Cache hidden property evaluations
     const isDesktopHidden = processTemplate<boolean>(
@@ -913,7 +967,7 @@ export class NavbarCard extends LitElement {
 
     return html`
       <ha-card
-        class="navbar ${editModeClassname} ${deviceModeClassName} ${desktopPositionClassname}">
+        class="navbar ${editModeClassname} ${deviceModeClassName} ${desktopPositionClassname} ${mobileModeClassname}">
         ${routes?.map(this._renderRoute).filter(x => x != null)}
       </ha-card>
       ${this._popup}

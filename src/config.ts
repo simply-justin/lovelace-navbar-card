@@ -17,13 +17,22 @@ type NavigateBackActionConfig = {
 type ShowNotificationsActionConfig = {
   action: 'show-notifications';
 };
+export type QuickbarActionConfig = {
+  action: 'quickbar';
+  mode?: 'commands' | 'devices' | 'entities';
+};
+type OpenEditModeActionConfig = {
+  action: 'open-edit-mode';
+};
 
 // Extend ActionConfig to include our custom popup action
 export type ExtendedActionConfig =
   | ActionConfig
   | PopupActionConfig
   | NavigateBackActionConfig
-  | ShowNotificationsActionConfig;
+  | ShowNotificationsActionConfig
+  | QuickbarActionConfig
+  | OpenEditModeActionConfig;
 
 type JSTemplate = string;
 type JSTemplatable<T> = JSTemplate | T;
@@ -90,6 +99,7 @@ export type NavbarCardConfig = {
     hidden?: JSTemplatable<boolean>;
   };
   mobile?: {
+    mode?: 'floating' | 'docked';
     show_labels?: LabelVisibilityConfig;
     hidden?: JSTemplatable<boolean>;
   };
@@ -114,5 +124,6 @@ export const DEFAULT_NAVBAR_CONFIG: NavbarCardConfig = {
   },
   mobile: {
     show_labels: false,
+    mode: 'docked',
   },
 };
