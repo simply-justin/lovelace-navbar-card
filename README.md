@@ -101,15 +101,16 @@ routes:
 
 <img width="400" height="120" alt="navbar-card" src="https://github.com/user-attachments/assets/346a6466-1a79-400e-9fe4-4f8472b3bee5" />
 
-| Name       | Type                  | Default    | Description                                                  |
-| ---------- | --------------------- | ---------- | ------------------------------------------------------------ |
-| `routes`   | [Routes](#routes)     | `Required` | Defines the array of routes to be shown in the navbar        |
-| `desktop`  | [Desktop](#desktop)   | -          | Options specific to desktop mode                             |
-| `mobile`   | [Mobile](#mobile)     | -          | Options specific to mobile mode                              |
-| `template` | [Template](#template) | -          | Template name                                                |
-| `layout`   | [Layout](#layout)     | -          | Layout configuration options                                 |
-| `styles`   | [Styles](#styles)     | -          | Custom CSS styles for the card                               |
-| `haptic`   | [Haptic](#haptic)     | -          | Fine tune when the haptic events should be fired in the card |
+| Name           | Type                          | Default    | Description                                                                                             |
+| -------------- | ----------------------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
+| `routes`       | [Routes](#routes)             | `Required` | Defines the array of routes to be shown in the navbar                                                   |
+| `desktop`      | [Desktop](#desktop)           | -          | Options specific to desktop mode                                                                        |
+| `mobile`       | [Mobile](#mobile)             | -          | Options specific to mobile mode                                                                         |
+| `template`     | [Template](#template)         | -          | Template name                                                                                           |
+| `layout`       | [Layout](#layout)             | -          | Layout configuration options                                                                            |
+| `styles`       | [Styles](#styles)             | -          | Custom CSS styles for the card                                                                          |
+| `haptic`       | [Haptic](#haptic)             | -          | Fine tune when the haptic events should be fired in the card                                            |
+| `media_player` | [Media player](#media-player) | -          | `[BETA]` Automatically display a media_player card on top of navbar-card. Only enabled for mobile mode. |
 
 ### Routes
 
@@ -266,9 +267,13 @@ Specific configuration for desktop mode.
 | Name          | Type                                     | Default  | Description                                                                |
 | ------------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
 | `show_labels` | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                          |
+| `show_popup_label_backgrounds` | boolean | `false`  | Whether or not to display label backgrounds for popup items                          |
 | `min_width`   | number                                   | `768`    | Screen size from which the navbar will be displayed as its desktop variant |
 | `position`    | `top` \| `bottom` \| `left` \| `right`   | `bottom` | Position of the navbar on desktop devices                                  |
 | `hidden`      | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on desktop devices                          |
+
+<img width="200" alt="Popup labels turned off for desktop" src="https://github.com/user-attachments/assets/33516186-be1e-48de-9f25-808851f302b6" />
+<img width="200" alt="Popup labels turned on for desktop" src="https://github.com/user-attachments/assets/d8453509-9c67-4e5d-949f-2848630346d6" />
 
 ---
 
@@ -278,12 +283,15 @@ Specific configuration for mobile mode.
 
 <img width="785" height="108" alt="navbar-card_mobile" src="https://github.com/user-attachments/assets/b8134d65-d237-412a-9c0b-dfc9c009de46" />
 
-
 | Name          | Type                                     | Default  | Description                                                                                                             |
 | ------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `show_labels` | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                                                                       |
+| `show_popup_label_backgrounds` | boolean | `false`  | Whether or not to display label backgrounds for popup items                          |
 | `hidden`      | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on mobile devices                                                                        |
 | `mode`        | `docked` \| `floating`                   | `docked` | Choose visualization mode on mobile devices. `docked` for default experience, `floating` for desktop-like visualization |
+
+<img width="200" alt="Popup labels turned off for mobile" src="https://github.com/user-attachments/assets/0547373e-283c-4233-b8d7-fd0928f0af4b" />
+<img width="200" alt="Popup labels turned on for mobile" src="https://github.com/user-attachments/assets/aaa6c424-1f44-46a5-9a20-2eb08d5d8eb4" />
 
 ---
 
@@ -297,6 +305,56 @@ Controls when haptic feedback is triggered. You can either use a boolean to enab
 | `tap_action`        | boolean | `false` | Trigger on tap actions                |
 | `hold_action`       | boolean | `false` | Trigger on hold actions               |
 | `double_tap_action` | boolean | `false` | Trigger on double tap actions         |
+
+---
+
+### Media player
+
+> [!IMPORTANT]
+> This feature is still in **BETA**. Some features might not work as expected
+
+When enabled, this configuration displays a `media_player` widget above the `navbar-card`. Currently, it is shown only in mobile mode and only when the `media_player` state is `paused` or `playing`.
+
+<img width="445" height="166" alt="navbar-card_media-player" src="https://github.com/user-attachments/assets/b8898268-e232-4759-b35c-23a1afd43e7a" />
+
+| Option   | Type                                 | Default                                                  | Description                                                         |
+| -------- | ------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
+| `entity` | string \| [JSTemplate](#jstemplate)  | -                                                        | Entity ID of the media_player                                       |
+| `show`   | boolean \| [JSTemplate](#jstemplate) | `true` when media_player is either `playing` or `paused` | Manually configure when the media player widget should be displayed |
+
+Example:
+
+```yaml
+type: custom:navbar-card
+...
+media_player:
+  show: true
+  entity: |
+    [[[
+      const state = states['sensor.area_select'].state;
+      let entity;
+
+      switch (state) {
+        case 'Office':
+          entity = 'media_player.office';
+          break;
+        case 'Kitchen':
+          entity = 'media_player.kitchen';
+          break;
+        case 'Main bedroom':
+          entity = 'media_player.main_bedroom';
+          break;
+        case 'Living room':
+          entity = 'media_player.living_room';
+          break;
+        default:
+          // fallback if not in a room with a defined player
+          entity = 'media_player.whole_home';
+      }
+
+      return entity;
+    ]]]
+```
 
 ---
 
@@ -389,11 +447,17 @@ You can check out some examples [here](#examples-with-custom-styles) for inspira
 
 Here is a breakdown of the CSS classes available for customization:
 
-- `.navbar`: Base component for the navbar.
+- `.navbar`: Main wrapper of navbar-card and its widgets.
   - `.navbar.desktop`: Styling for the desktop version.
   - `.navbar.desktop.[top | bottom | left | right]`: Specific styles for different positions of the navbar.
   - `.navbar.mobile`: Styling for the mobile version.
   - `.navbar.mobile.floating`: Styling for the mobile version when using `floating` mode.
+
+- `.navbar-card`: The navbar-card itself (`ha-card` component).
+  - `.navbar-card.desktop`: Styling for the desktop version.
+  - `.navbar-card.desktop.[top | bottom | left | right]`: Specific styles for different positions of the navbar.
+  - `.navbar-card.mobile`: Styling for the mobile version.
+  - `.navbar-card.mobile.floating`: Styling for the mobile version when using `floating` mode.
 
 - `.route`: Represents each route (or item) within the navbar.
 
@@ -420,6 +484,35 @@ Here is a breakdown of the CSS classes available for customization:
   - `.popup-item.label-[top | bottom | left | right]`: Specific styles for different positions of the label.
   - `.popup-item .label`: Styles applied to the label of each popup item.
   - `.popup-item .button`: Button for each popup item, containing just the icon.
+
+- `.media-player`: Styles applied to the media-player card
+- `.media-player-bg`: Background of the media-player. This contains the image of the current media playing, blurred and with very low opacity
+- `.media-player-image`: Image container of the current song
+- `.media-player-info`: Container for the title and artist
+- `.media-player-title`: Container for the title
+- `.media-player-artist`: Container for the artist
+- `.media-player-button`: Class applied to all buttons in the media_player card
+- `.media-player-button-play-pause`: Play pause button
+- `.media-player-progress-bar`: Container for the progress bar of the current playing media
+- `.media-player-progress-bar-fill`: Filled section of the progress bar
+
+#### CSS variables
+
+The `.navbar` component relies on a set of CSS variables to manage its styling. You can customize its appearance by overriding the following variables:
+
+| Name                                  | Default value                        | Uses                                                              |
+| ------------------------------------- | ------------------------------------ | ----------------------------------------------------------------- |
+| `--navbar-primary-color`              | var(--primary-color)                 | Accent color used for navbar-card                                 |
+| `--navbar-border-radius`              | var(--ha-card-border-radius, 12px)   | Border radius applied to all `ha-card` elements inside `.navbar`  |
+| `--navbar-background-color`           | var(--card-background-color)         | Background color used for all `ha-card` elements inside `.navbar` |
+| `--navbar-route-icon-size`            | 24px                                 | Size in pixels for each `.icon` element                           |
+| `--navbar-route-image-size`           | 32px                                 | Size in pixels for each `.image` element                          |
+| `--navbar-box-shadow`                 | 0px -1px 4px 0px rgba(0, 0, 0, 0.14) | Box shadow used in mobile docked layout                           |
+| `--navbar-box-shadow-mobile-floating` | var(--material-shadow-elevation-2dp) | Box shadow used in mobile floating mode                           |
+| `--navbar-box-shadow-desktop`         | var(--material-shadow-elevation-2dp) | Box shadow used in desktop mode                                   |
+| `--navbar-z-index`                    | 3                                    | Default z-index for navbar-card                                   |
+| `--navbar-popup-backdrop-z-index`     | 900                                  | z-index used for the `.navbar-popup-backdrop` element             |
+| `--navbar-popup-z-index`              | 901                                  | z-index used for the `.navbar-popup` element                      |
 
 <br>
 
@@ -626,7 +719,7 @@ routes:
     label: Devices
     icon: mdi:devices
 styles: |
-  .navbar {
+  .navbar-card {
     background: #000000;
   }
 ```
@@ -649,7 +742,7 @@ routes:
     label: Devices
     icon: mdi:devices
 styles: |
-  .navbar.desktop{
+  .navbar-card.desktop {
     border-radius: 0px;
   }
 ```
