@@ -29,6 +29,7 @@ import {
 } from './utils';
 import { getEditorStyles } from './styles';
 import { getNavbarTemplates } from './dom-utils';
+import { loadHaComponents } from '@kipk/load-ha-components';
 
 enum HAActions {
   tap_action = 'tap_action',
@@ -56,6 +57,26 @@ const STRING_JS_TEMPLATE_HELPER = html`${GENERIC_JS_TEMPLATE_HELPER}<br />Must
 export class NavbarCardEditor extends LitElement {
   @property({ attribute: false }) public hass: any;
   @state() private _config: NavbarCardConfig = { routes: [] };
+
+  protected firstUpdated(_changedProperties: PropertyValues): void {
+    super.firstUpdated(_changedProperties);
+    loadHaComponents([
+      'ha-form',
+      'ha-tooltip',
+      'ha-icon',
+      'ha-button',
+      'ha-combo-box',
+      'ha-textfield',
+      'ha-switch',
+      'ha-expansion-panel',
+      'ha-code-editor',
+      'ha-radio',
+      'ha-alert',
+      'ha-formfield',
+      'ha-icon-picker',
+      'ha-entity-picker',
+    ]);
+  }
 
   /**********************************************************************/
   /* Config mutation functions */
