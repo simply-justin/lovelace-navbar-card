@@ -129,6 +129,8 @@ export class NavbarCardEditor extends LitElement {
     disabled?: boolean;
     helper?: string | TemplateResult;
     helperPersistent?: boolean;
+    defaultValue?: T;
+    hideClearIcon?: boolean;
   }) {
     return html`
       <ha-combo-box
@@ -136,8 +138,10 @@ export class NavbarCardEditor extends LitElement {
         helperPersistent=${options.helperPersistent}
         label=${options.label}
         .items=${options.items}
-        .value=${genericGetProperty(this._config, options.configKey)}
+        .value=${genericGetProperty(this._config, options.configKey) ??
+        options.defaultValue}
         .disabled=${options.disabled}
+        .hideClearIcon=${options.hideClearIcon}
         @value-changed="${e => {
           this.updateConfigByKey(options.configKey, e.detail.value);
         }}" />
@@ -894,6 +898,16 @@ export class NavbarCardEditor extends LitElement {
           Mobile options
         </h4>
         <div class="editor-section">
+          ${this.makeComboBox<MobileMode>({
+            label: 'Mode',
+            items: [
+              { label: 'Floating', value: 'floating' },
+              { label: 'Docked', value: 'docked' },
+            ],
+            configKey: 'mobile.mode',
+            defaultValue: DEFAULT_NAVBAR_CONFIG.mobile?.mode,
+            hideClearIcon: true,
+          })}
           ${this.makeComboBox<LabelVisibilityConfig>({
             label: 'Show labels',
             items: [
