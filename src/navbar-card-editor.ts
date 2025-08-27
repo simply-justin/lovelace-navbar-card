@@ -839,6 +839,10 @@ export class NavbarCardEditor extends LitElement {
   }
 
   renderDesktopEditor() {
+    const labelVisibility =
+      genericGetProperty(this._config, 'desktop.show_labels') ??
+      DEFAULT_NAVBAR_CONFIG.desktop?.show_labels;
+
     return html`
       <ha-expansion-panel outlined>
         <h4 slot="header">
@@ -879,6 +883,13 @@ export class NavbarCardEditor extends LitElement {
             ],
             configKey: 'desktop.show_labels',
           })}
+          ${this.makeSwitch({
+            label: 'Show popup label backgrounds',
+            configKey: 'desktop.show_popup_label_backgrounds',
+            disabled: ![true, 'popup_only'].includes(labelVisibility),
+            defaultValue:
+              DEFAULT_NAVBAR_CONFIG.desktop?.show_popup_label_backgrounds,
+          })}
           ${this.makeTemplateEditor({
             // TODO JLAQ maybe replace with a templateSwitchEditor
             label: 'Hidden',
@@ -891,6 +902,10 @@ export class NavbarCardEditor extends LitElement {
   }
 
   renderMobileEditor() {
+    const labelVisibility =
+      genericGetProperty(this._config, 'mobile.show_labels') ??
+      DEFAULT_NAVBAR_CONFIG.mobile?.show_labels;
+
     return html`
       <ha-expansion-panel outlined>
         <h4 slot="header">
@@ -918,13 +933,12 @@ export class NavbarCardEditor extends LitElement {
             ],
             configKey: 'mobile.show_labels',
           })}
-          ${this.makeComboBox<MobileMode>({
-            label: 'Mode',
-            items: [
-              { label: 'Floating', value: 'floating' },
-              { label: 'Docked', value: 'docked' },
-            ],
-            configKey: 'mobile.mode',
+          ${this.makeSwitch({
+            label: 'Show popup label backgrounds',
+            configKey: 'desktop.show_popup_label_backgrounds',
+            disabled: ![true, 'popup_only'].includes(labelVisibility),
+            defaultValue:
+              DEFAULT_NAVBAR_CONFIG.desktop?.show_popup_label_backgrounds,
           })}
           ${this.makeTemplateEditor({
             // TODO JLAQ maybe replace with a templateSwitchEditor
