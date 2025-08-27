@@ -106,6 +106,9 @@ type MediaPlayerConfig = {
   show?: JSTemplatable<boolean>;
 };
 
+// Mobile mode configuration
+export type MobileMode = 'floating' | 'docked';
+
 // Main card configuration
 export type NavbarCardConfig = {
   routes: RouteItem[];
@@ -122,7 +125,7 @@ export type NavbarCardConfig = {
     hidden?: JSTemplatable<boolean>;
   };
   mobile?: {
-    mode?: 'floating' | 'docked';
+    mode?: MobileMode;
     show_labels?: LabelVisibilityConfig;
     show_popup_label_backgrounds?: boolean;
     hidden?: JSTemplatable<boolean>;

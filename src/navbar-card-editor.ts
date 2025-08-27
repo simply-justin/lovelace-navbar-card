@@ -7,6 +7,7 @@ import {
   DesktopPosition,
   ExtendedActionConfig,
   LabelVisibilityConfig,
+  MobileMode,
   NavbarCardConfig,
   NavbarCustomActions,
   PopupItem,
@@ -830,6 +831,14 @@ export class NavbarCardEditor extends LitElement {
               { label: 'Routes only', value: 'routes_only' },
             ],
             configKey: 'mobile.show_labels',
+          })}
+          ${this.makeComboBox<MobileMode>({
+            label: 'Mode',
+            items: [
+              { label: 'Floating', value: 'floating' },
+              { label: 'Docked', value: 'docked' },
+            ],
+            configKey: 'mobile.mode',
           })}
           ${this.makeTemplateEditor({
             // TODO JLAQ maybe replace with a templateSwitchEditor
