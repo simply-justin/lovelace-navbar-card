@@ -688,6 +688,10 @@ export class NavbarCardEditor extends LitElement {
   }
 
   renderLayoutEditor() {
+    const autoPaddingEnabled =
+      genericGetProperty(this._config, 'layout.auto_padding.enabled') ??
+      DEFAULT_NAVBAR_CONFIG.layout?.auto_padding?.enabled;
+
     // TODO JLAQ Add some kind of helper / link to documentation
     return html`
       <ha-expansion-panel outlined>
@@ -699,10 +703,11 @@ export class NavbarCardEditor extends LitElement {
           <label class="editor-label">Auto padding</label>
           ${this.makeSwitch({
             label: 'Enable auto padding',
-            configKey: 'layout.auto_padding',
+            configKey: 'layout.auto_padding.enabled',
             defaultValue: DEFAULT_NAVBAR_CONFIG.layout?.auto_padding?.enabled,
           })}
           ${this.makeTextInput({
+            disabled: !autoPaddingEnabled,
             label: 'Desktop padding',
             configKey: 'layout.auto_padding.desktop_px',
             type: 'number',
@@ -712,6 +717,7 @@ export class NavbarCardEditor extends LitElement {
             helper: 'Padding for desktop mode. 0 to disable.',
           })}
           ${this.makeTextInput({
+            disabled: !autoPaddingEnabled,
             label: 'Mobile padding',
             configKey: 'layout.auto_padding.mobile_px',
             type: 'number',
