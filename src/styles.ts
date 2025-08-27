@@ -383,7 +383,7 @@ const POPUP_STYLES = css`
   .navbar-popup.visible {
     opacity: 1;
   }
-  
+
   .navbar-popup.popuplabelbackground {
     padding-left: 0px;
   }
@@ -616,6 +616,10 @@ const EDITOR_STYLES = css`
   .template-editor-helper {
     font-size: 0.93em;
     color: var(--secondary-text-color, #888);
+  }
+  .quickbar-mode-container {
+    display: flex;
+    flex-direction: column;
   }
 `;
 

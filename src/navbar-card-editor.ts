@@ -8,7 +8,9 @@ import {
   ExtendedActionConfig,
   LabelVisibilityConfig,
   NavbarCardConfig,
+  NavbarCustomActions,
   PopupItem,
+  QuickbarActionConfig,
   RouteItem,
 } from './config';
 import {
@@ -887,8 +889,9 @@ export class NavbarCardEditor extends LitElement {
         return '';
     }
   }
+
   isCustomAction(value: string) {
-    return ['open-popup', 'navigate-back', 'toggle-menu'].includes(value);
+    return !['none', 'hass_action'].includes(value);
   }
 
   makeActionSelector(options: {
@@ -896,12 +899,19 @@ export class NavbarCardEditor extends LitElement {
     disabled?: boolean;
     actionType: HAActions;
   }) {
-    const ACTIONS = [
+    const ACTIONS: {
+      label: string;
+      value: NavbarCustomActions | 'hass_action';
+    }[] = [
       { label: 'Home Assistant action', value: 'hass_action' },
-      { label: 'Open Popup', value: 'open-popup' },
-      { label: 'Navigate Back', value: 'navigate-back' },
-      { label: 'Toggle sidebar', value: 'toggle-menu' },
-      { label: 'Toggle notifications menu', value: 'show-notifications' },
+      { label: 'Open Popup', value: NavbarCustomActions.openPopup },
+      { label: 'Navigate Back', value: NavbarCustomActions.navigateBack },
+      { label: 'Toggle Menu', value: NavbarCustomActions.toggleMenu },
+      { label: 'Quickbar', value: NavbarCustomActions.quickbar },
+      {
+        label: 'Show Notifications',
+        value: NavbarCustomActions.showNotifications,
+      },
     ];
 
     const raw = genericGetProperty(
@@ -909,10 +919,11 @@ export class NavbarCardEditor extends LitElement {
       options.configKey,
     ) as ExtendedActionConfig;
 
-    const selected: 'hass_action' | 'open-popup' | 'navigate-back' =
-      this.isCustomAction(raw?.action)
-        ? (raw?.action as 'open-popup' | 'navigate-back')
-        : 'hass_action';
+    const selected: 'hass_action' | NavbarCustomActions = this.isCustomAction(
+      raw?.action,
+    )
+      ? (raw?.action as NavbarCustomActions)
+      : 'hass_action';
 
     return html`
       <ha-expansion-panel outlined>
@@ -951,6 +962,54 @@ export class NavbarCardEditor extends LitElement {
               }
             }}></ha-combo-box>
 
+          ${selected === NavbarCustomActions.quickbar
+            ? html`
+                <div class="quickbar-mode-container">
+                  <ha-formfield label="Devices">
+                    <ha-radio
+                      name="quickbar-mode"
+                      value="devices"
+                      label="Devices"
+                      .checked=${(raw as QuickbarActionConfig)?.mode ===
+                      'devices'}
+                      @change=${() => {
+                        this.updateConfigByKey(options.configKey, {
+                          action: NavbarCustomActions.quickbar,
+                          mode: 'devices',
+                        });
+                      }}></ha-radio>
+                  </ha-formfield>
+                  <ha-formfield label="Entities">
+                    <ha-radio
+                      name="quickbar-mode"
+                      value="entities"
+                      label="Entities"
+                      .checked=${(raw as QuickbarActionConfig)?.mode ===
+                      'entities'}
+                      @change=${() => {
+                        this.updateConfigByKey(options.configKey, {
+                          action: NavbarCustomActions.quickbar,
+                          mode: 'entities',
+                        });
+                      }}></ha-radio>
+                  </ha-formfield>
+                  <ha-formfield label="Commands">
+                    <ha-radio
+                      name="quickbar-mode"
+                      value="commands"
+                      label="Commands"
+                      .checked=${(raw as QuickbarActionConfig)?.mode ===
+                      'commands'}
+                      @change=${() => {
+                        this.updateConfigByKey(options.configKey, {
+                          action: NavbarCustomActions.quickbar,
+                          mode: 'commands',
+                        });
+                      }}></ha-radio>
+                  </ha-formfield>
+                </div>
+              `
+            : html``}
           ${selected === 'hass_action'
             ? html`
                 <ha-form
@@ -984,7 +1043,7 @@ export class NavbarCardEditor extends LitElement {
                     );
                   }}></ha-form>
               `
-            : ''}
+            : html``}
         </div>
       </ha-expansion-panel>
     `;

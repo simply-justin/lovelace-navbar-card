@@ -14,6 +14,7 @@ import {
   DEFAULT_NAVBAR_CONFIG,
   DesktopPosition,
   NavbarCardConfig,
+  NavbarCustomActions,
   PopupItem,
   QuickbarActionConfig,
   RouteItem,
@@ -832,13 +833,13 @@ export class NavbarCard extends LitElement {
     forceResetRipple(target);
 
     // Close popup for any action unless it's opening a new popup
-    if (action?.action !== 'open-popup' && isPopupItem) {
+    if (action?.action !== NavbarCustomActions.openPopup && isPopupItem) {
       this._closePopup();
     }
 
     // Handle different action types
     switch (action?.action) {
-      case 'open-popup':
+      case NavbarCustomActions.openPopup:
         if (!isPopupItem) {
           const popupItems = route.popup ?? route.submenu;
           if (!popupItems) {
@@ -854,7 +855,7 @@ export class NavbarCard extends LitElement {
         }
         break;
 
-      case 'toggle-menu':
+      case NavbarCustomActions.toggleMenu:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
@@ -864,7 +865,7 @@ export class NavbarCard extends LitElement {
         });
         break;
 
-      case 'quickbar':
+      case NavbarCustomActions.quickbar:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
@@ -881,7 +882,7 @@ export class NavbarCard extends LitElement {
         );
         break;
 
-      case 'show-notifications':
+      case NavbarCustomActions.showNotifications:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
@@ -891,14 +892,14 @@ export class NavbarCard extends LitElement {
         });
         break;
 
-      case 'navigate-back':
+      case NavbarCustomActions.navigateBack:
         if (this._shouldTriggerHaptic(actionType, true)) {
           hapticFeedback();
         }
         window.history.back();
         break;
 
-      case 'open-edit-mode':
+      case NavbarCustomActions.openEditMode:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
