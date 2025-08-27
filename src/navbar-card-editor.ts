@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Reason: Dynamic dot-notation keys for deeply nested config editing in a generic editor.
-import { LitElement, TemplateResult, html } from 'lit';
+import { LitElement, PropertyValues, TemplateResult, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import {
   DEFAULT_NAVBAR_CONFIG,
@@ -184,6 +184,27 @@ export class NavbarCardEditor extends LitElement {
           }}"></ha-textfield>
       </div>
     `;
+  }
+
+  makeEntityPicker(options: {
+    label: string;
+    configKey: DotNotationKeys<NavbarCardConfig>;
+    disabled?: boolean;
+    includeDomains?: string[];
+    excludeDomains?: string[];
+  }) {
+    return html`<ha-entity-picker
+      label="${options.label}"
+      .hass="${this.hass}"
+      .value=${genericGetProperty(this._config, options.configKey) ?? ''}
+      .configValue="${options.configKey}"
+      .includeDomains="${options.includeDomains}"
+      .excludeDomains="${options.excludeDomains}"
+      .disabled="${options.disabled}"
+      allow-custom-entity
+      @value-changed="${e => {
+        this.updateConfigByKey(options.configKey, e.detail.value);
+      }}"></ha-entity-picker>`;
   }
 
   makeIconPicker(options: {
@@ -789,6 +810,30 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
+  renderMediaPlayerEditor() {
+    return html`
+      <ha-expansion-panel outlined>
+        <h4 slot="header">
+          <ha-icon icon="mdi:music"></ha-icon>
+          Media player
+        </h4>
+        <div class="editor-section">
+          ${this.makeEntityPicker({
+            label: 'Media player entity',
+            configKey: 'media_player.entity',
+            includeDomains: ['media_player'],
+          })}
+          ${this.makeTemplateEditor({
+            // TODO JLAQ maybe replace with a templateSwitchEditor
+            label: 'Show media player',
+            configKey: 'media_player.show',
+            helper: BOOLEAN_JS_TEMPLATE_HELPER,
+          })}
+        </div>
+      </ha-expansion-panel>
+    `;
+  }
+
   renderDesktopEditor() {
     return html`
       <ha-expansion-panel outlined>
@@ -1111,8 +1156,8 @@ export class NavbarCardEditor extends LitElement {
           : html``}
         ${this.renderTemplateEditor()} ${this.renderRoutesEditor()}
         ${this.renderDesktopEditor()} ${this.renderMobileEditor()}
-        ${this.renderLayoutEditor()} ${this.renderHapticEditor()}
-        ${this.renderStylesEditor()}
+        ${this.renderLayoutEditor()} ${this.renderMediaPlayerEditor()}
+        ${this.renderHapticEditor()} ${this.renderStylesEditor()}
       </div>
     `;
   }
