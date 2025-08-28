@@ -75,6 +75,7 @@ export class NavbarCardEditor extends LitElement {
       'ha-formfield',
       'ha-icon-picker',
       'ha-entity-picker',
+      'ha-textarea',
     ]);
   }
 
