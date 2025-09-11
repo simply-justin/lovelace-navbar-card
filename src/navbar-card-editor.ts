@@ -30,6 +30,7 @@ import {
 import { getEditorStyles } from './styles';
 import { getNavbarTemplates } from './dom-utils';
 import { loadHaComponents } from '@kipk/load-ha-components';
+import { TemplatableInputOptions } from './navbar-card-editor.types';
 
 enum HAActions {
   tap_action = 'tap_action',
@@ -157,7 +158,7 @@ export class NavbarCardEditor extends LitElement {
     autocomplete?: string;
     suffix?: string;
     prefixIcon?: string;
-    tooltip?: string;
+    tooltip?: string | TemplateResult;
     helper?: string | TemplateResult;
     helperPersistent?: boolean;
     placeholder?: string;
@@ -228,16 +229,10 @@ export class NavbarCardEditor extends LitElement {
     `;
   }
 
-  // TODO JLAQ properly add types to this function based on fieldType
-  makeTemplatableField(options: {
-    label: string;
-    configKey: DotNotationKeys<NavbarCardConfig>;
-    fieldType: 'string' | 'icon';
-    tooltip?: string | TemplateResult;
-    templateHelper?: string | TemplateResult;
-    textHelper?: string | TemplateResult;
-    placeholder?: string;
-  }) {
+  makeTemplatable(options: TemplatableInputOptions) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { label, inputType, ...rest } = options;
+
     const value = genericGetProperty(this._config, options.configKey) as
       | string
       | undefined;
@@ -248,7 +243,7 @@ export class NavbarCardEditor extends LitElement {
 
     // Handler to toggle between template and text
     const toggleMode = () => {
-      let newValue: string = value ?? '';
+      let newValue: string = value ? value.toString() : '';
       if (isTemplate) {
         // Remove template delimiters
         newValue = cleanTemplate(newValue);
@@ -259,67 +254,62 @@ export class NavbarCardEditor extends LitElement {
       this.updateConfigByKey(options.configKey, newValue);
     };
 
-    const inputText =
-      options.fieldType === 'icon'
-        ? 'Switch to icon picker'
-        : 'Switch to plain text';
-
     // Button label and icon
-    const buttonLabel = isTemplate ? inputText : 'Switch to template';
+    const buttonLabel = isTemplate
+      ? 'Switch to UI input'
+      : 'Switch to template';
     const buttonIcon = isTemplate ? 'mdi:format-text' : 'mdi:code-braces';
 
-    // Compose the toggle button
-    const toggleButton = html`
-      <ha-button
-        @click=${toggleMode}
-        outlined
-        size="small"
-        variant="neutral"
-        appearance="plain"
-        class="navbar-template-toggle-button">
-        <ha-icon slot="start" icon="${buttonIcon}"></ha-icon>
-        <span>${buttonLabel}</span>
-      </ha-button>
-    `;
-
-    // Render the appropriate editor with the toggle button
-    if (isTemplate) {
-      return html`
-        <div style="display: flex; align-items: center; gap: 0.5em;">
-          <label class="editor-label" style="flex: 1;">${options.label}</label>
-          ${toggleButton}
+    return html`
+      <div class="templatable-field">
+        <div class="templatable-field-header">
+          <label class="templatable-field-header-label editor-label"
+            >${options.label}
+          </label>
+          <ha-button
+            @click=${toggleMode}
+            outlined
+            size="small"
+            variant="neutral"
+            appearance="plain">
+            <ha-icon slot="start" icon="${buttonIcon}"></ha-icon>
+            <span>${buttonLabel}</span>
+          </ha-button>
         </div>
-        ${this.makeTemplateEditor({
-          label: '',
-          configKey: options.configKey,
-          tooltip: options.tooltip,
-          helper: options.templateHelper,
-        })}
-      `;
-    } else {
-      return html`
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5em;">
-            <label class="editor-label" style="flex: 1;"
-              >${options.label}</label
-            >
-            ${toggleButton}
-          </div>
-          ${options.fieldType === 'string'
+        ${isTemplate
+          ? this.makeTemplateEditor({
+              label: '',
+              configKey: options.configKey,
+              tooltip: options.tooltip,
+              helper: options.templateHelper,
+              allowNull: false,
+            })
+          : options.inputType === 'string'
             ? this.makeTextInput({
                 label: '',
-                configKey: options.configKey,
-                tooltip: options.tooltip as string | undefined,
-                helper: options.textHelper,
-                placeholder: options.placeholder,
+                ...rest,
               })
-            : this.makeIconPicker({
-                label: '',
-                configKey: options.configKey,
-              })}
-        </div>
-      `;
-    }
+            : options.inputType === 'number'
+              ? this.makeEntityPicker({
+                  label: '',
+                  ...rest,
+                })
+              : options.inputType === 'icon'
+                ? this.makeIconPicker({
+                    label: '',
+                    ...rest,
+                  })
+                : options.inputType === 'switch'
+                  ? this.makeSwitch({
+                      label: '',
+                      ...rest,
+                    })
+                  : this.makeTextInput({
+                      label: '',
+                      ...rest,
+                    })}
+      </div>
+    `;
   }
 
   makeTemplateEditor(options: {
@@ -327,6 +317,7 @@ export class NavbarCardEditor extends LitElement {
     configKey: DotNotationKeys<NavbarCardConfig>;
     tooltip?: string | TemplateResult;
     helper?: string | TemplateResult;
+    allowNull?: boolean;
   }) {
     return html`
       <div class="template-editor-container">
@@ -343,7 +334,9 @@ export class NavbarCardEditor extends LitElement {
           @value-changed=${e => {
             const templateValue =
               e.target.value?.trim() == ''
-                ? null
+                ? options.allowNull
+                  ? null
+                  : '[[[]]]'
                 : wrapTemplate(e.target.value);
             this.updateConfigByKey(options.configKey, templateValue);
           }}></ha-code-editor>
@@ -358,7 +351,7 @@ export class NavbarCardEditor extends LitElement {
     label: string;
     configKey: DotNotationKeys<NavbarCardConfig>;
     disabled?: boolean;
-    tooltip?: string;
+    tooltip?: string | TemplateResult;
     defaultValue?: boolean;
   }) {
     return html`
@@ -512,30 +505,30 @@ export class NavbarCardEditor extends LitElement {
               </div>
             </div>
 
-            ${this.makeTemplatableField({
+            ${this.makeTemplatable({
+              inputType: 'string',
               label: 'Label',
-              fieldType: 'string',
               configKey: `${baseConfigKey}.label` as any,
               templateHelper: STRING_JS_TEMPLATE_HELPER,
             })}
-            ${this.makeTemplatableField({
-              fieldType: 'icon',
+            ${this.makeTemplatable({
+              inputType: 'icon',
               label: 'Icon',
               configKey: `${baseConfigKey}.icon` as any,
             })}
-            ${this.makeTemplatableField({
-              fieldType: 'icon',
+            ${this.makeTemplatable({
+              inputType: 'icon',
               label: 'Icon selected',
               configKey: `${baseConfigKey}.icon_selected` as any,
             })}
-            ${this.makeTemplatableField({
-              fieldType: 'string',
+            ${this.makeTemplatable({
+              inputType: 'string',
               label: 'Image',
               configKey: `${baseConfigKey}.image` as any,
               placeholder: 'URL of the image',
             })}
-            ${this.makeTemplatableField({
-              fieldType: 'string',
+            ${this.makeTemplatable({
+              inputType: 'string',
               label: 'Image selected',
               configKey: `${baseConfigKey}.image_selected` as any,
               placeholder: 'URL of the image',
@@ -549,27 +542,28 @@ export class NavbarCardEditor extends LitElement {
                 Badge
               </h5>
               <div class="editor-section">
-                ${this.makeTemplatableField({
-                  fieldType: 'string',
+                ${this.makeTemplatable({
+                  inputType: 'string',
                   label: 'Color',
                   configKey: `${baseConfigKey}.badge.color` as any,
                   textHelper:
                     'Color of the badge in any CSS valid format (red, #ff0000, rgba(255,0,0,1)...)',
                   templateHelper: STRING_JS_TEMPLATE_HELPER,
                 })}
-                ${this.makeTemplateEditor({
+                ${this.makeTemplatable({
+                  inputType: 'switch',
                   label: 'Show',
                   configKey: `${baseConfigKey}.badge.show` as any,
-                  helper: BOOLEAN_JS_TEMPLATE_HELPER,
+                  templateHelper: BOOLEAN_JS_TEMPLATE_HELPER,
                 })}
-                ${this.makeTemplatableField({
-                  fieldType: 'string',
+                ${this.makeTemplatable({
+                  inputType: 'string',
                   label: 'Count',
                   configKey: `${baseConfigKey}.badge.count` as any,
                   templateHelper: STRING_JS_TEMPLATE_HELPER,
                 })}
-                ${this.makeTemplatableField({
-                  fieldType: 'string',
+                ${this.makeTemplatable({
+                  inputType: 'string',
                   label: 'TextColor',
                   configKey: `${baseConfigKey}.badge.textColor` as any,
                   templateHelper: STRING_JS_TEMPLATE_HELPER,
@@ -823,9 +817,10 @@ export class NavbarCardEditor extends LitElement {
           Media player
         </h4>
         <div class="editor-section">
-          ${this.makeEntityPicker({
+          ${this.makeTemplatable({
             label: 'Media player entity',
             configKey: 'media_player.entity',
+            inputType: 'entity',
             includeDomains: ['media_player'],
           })}
           ${this.makeTemplateEditor({

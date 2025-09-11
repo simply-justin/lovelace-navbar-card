@@ -621,6 +621,19 @@ const EDITOR_STYLES = css`
     display: flex;
     flex-direction: column;
   }
+  .templatable-field-container {
+    display: flex;
+    flex-direction: row;
+  }
+  .templatable-field-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .templatable-field-header-label {
+    flex: 1;
+  }
 `;
 
 // Drag-and-drop styles for routes editor
