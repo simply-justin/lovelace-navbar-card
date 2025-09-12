@@ -270,7 +270,6 @@ export const injectStyles = (
   defaultStyles: CSSResult,
   userStyles: CSSResult,
 ) => {
-  console.log('••••• injectStyles');
   createStyleElement(root, DEFAULT_STYLES_ID, defaultStyles);
   createStyleElement(root, USER_STYLES_ID, userStyles);
 };
