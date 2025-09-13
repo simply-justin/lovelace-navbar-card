@@ -116,21 +116,21 @@ routes:
 
 Routes represents an array of clickable icons that redirects to a given path. Each item in the array should contain the following configuration:
 
-| Name                | Type                                 | Default     | Description                                                                                                                                                |
-| ------------------- | ------------------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`               | string                               | `Required*` | The path to a Lovelace view. Ignored if `tap_action` is defined.                                                                                           |
-| `icon`              | string \| [JSTemplate](#jstemplate)  | -           | Material icon to display as this entry icon. Either `icon` or `image` is required.                                                                         |
-| `icon_selected`     | string \| [JSTemplate](#jstemplate)  | -           | Icon to be displayed when `url` matches the current browser URL                                                                                            |
-| `image`             | string \| [JSTemplate](#jstemplate)  | -           | URL of an image to display as this entry icon. Either `icon` or `image` is required.                                                                       |
-| `image_selected`    | string \| [JSTemplate](#jstemplate)  | -           | Image to be displayed when `url` matches the current browser URL                                                                                           |
-| `badge`             | [Badge](#badge)                      | -           | Badge configuration                                                                                                                                        |
-| `label`             | string \| [JSTemplate](#jstemplate)  | -           | Label to be displayed under the given route if `show_labels` is true                                                                                       |
-| `tap_action`        | [tap_action](#actions)               | -           | Custom tap action configuration.                                                                                                                           |
-| `hold_action`       | [hold_action](#actions)              | -           | Custom hold action configuration.                                                                                                                          |
-| `double_tap_action` | [double_tap_action](#actions)        | -           | Custom double_tap action configuration.                                                                                                                    |
-| `popup`             | [Popup items](#popup-items)          | -           | List of routes to display in a popup menu                                                                                                                  |
-| `hidden`            | boolean \| [JSTemplate](#jstemplate) | -           | Controls whether to render this route or not                                                                                                               |
-| `selected`          | boolean \| [JSTemplate](#jstemplate) | -           | Controls whether to display this route as selected or not. If not defined, the selected status will be computed as `route.url == window.location.pathname` |
+| Name                | Type                                                    | Default     | Description                                                                                                                                                |
+| ------------------- | ------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`               | string                                                  | `Required*` | The path to a Lovelace view. Ignored if `tap_action` is defined.                                                                                           |
+| `icon`              | string \| [JSTemplate](#jstemplate)                     | -           | Material icon to display as this entry icon. Either `icon` or `image` is required.                                                                         |
+| `icon_selected`     | string \| [JSTemplate](#jstemplate)                     | -           | Icon to be displayed when `url` matches the current browser URL                                                                                            |
+| `image`             | string \| [JSTemplate](#jstemplate)                     | -           | URL of an image to display as this entry icon. Either `icon` or `image` is required.                                                                       |
+| `image_selected`    | string \| [JSTemplate](#jstemplate)                     | -           | Image to be displayed when `url` matches the current browser URL                                                                                           |
+| `badge`             | [Badge](#badge)                                         | -           | Badge configuration                                                                                                                                        |
+| `label`             | string \| [JSTemplate](#jstemplate)                     | -           | Label to be displayed under the given route if `show_labels` is true                                                                                       |
+| `tap_action`        | [tap_action](#actions)                                  | -           | Custom tap action configuration.                                                                                                                           |
+| `hold_action`       | [hold_action](#actions)                                 | -           | Custom hold action configuration.                                                                                                                          |
+| `double_tap_action` | [double_tap_action](#actions)                           | -           | Custom double_tap action configuration.                                                                                                                    |
+| `popup`             | [Popup items](#popup-items)\| [JSTemplate](#jstemplate) | -           | List of routes to display in a popup menu                                                                                                                  |
+| `hidden`            | boolean \| [JSTemplate](#jstemplate)                    | -           | Controls whether to render this route or not                                                                                                               |
+| `selected`          | boolean \| [JSTemplate](#jstemplate)                    | -           | Controls whether to display this route as selected or not. If not defined, the selected status will be computed as `route.url == window.location.pathname` |
 
 > **Note**: `url` is required unless `tap_action`, `hold_action`, `double_tap_action` or `popup` is present.
 
@@ -148,14 +148,15 @@ Routes represents an array of clickable icons that redirects to a given path. Ea
 
 Apart from the [standard Home Assistant actions](https://www.home-assistant.io/dashboards/actions/) (navigate, call-service, etc.), `navbar-card` supports some additional custom actions:
 
-| Action               | Description                                                | Required Parameters                     |
-| -------------------- | ---------------------------------------------------------- | --------------------------------------- |
-| `open-popup`         | Opens the popup menu defined in the route                  | None                                    |
-| `toggle-menu`        | Opens the native HA side menu                              | None                                    |
-| `show-notifications` | Opens the native HA notifications drawer                   | None                                    |
-| `quickbar`           | Opens the native HA quickbar                               | `mode: entities \| commands \| devices` |
-| `navigate-back`      | Navigates back to the previous page in the browser history | None                                    |
-| `open-edit-mode`     | Opens the current dashboard in edit mode                   | None                                    |
+| Action               | Description                                                | Required Parameters                           |
+| -------------------- | ---------------------------------------------------------- | --------------------------------------------- |
+| `open-popup`         | Opens the popup menu defined in the route                  | -                                             |
+| `toggle-menu`        | Opens the native HA side menu                              | -                                             |
+| `show-notifications` | Opens the native HA notifications drawer                   | -                                             |
+| `quickbar`           | Opens the native HA quickbar                               | `mode`: `entities` \| `commands` \| `devices` |
+| `navigate-back`      | Navigates back to the previous page in the browser history | -                                             |
+| `open-edit-mode`     | Opens the current dashboard in edit mode                   | -                                             |
+| `custom-js-action`   | Allows the user to execute custom Javascript code          | `code`: JS code                               |
 
 Example:
 
@@ -173,6 +174,15 @@ routes:
       mode: entities
     hold_action:
       action: toggle-menu # Will open the native HA side menu
+  - icon: mdi:menu
+    tap_action:
+      action: custom-js-action
+      code: |
+        [[[
+          const newURL = window.location.href + "#bubble-popup";
+          history.replaceState(null, "", newURL);
+          window.dispatchEvent(new Event('location-changed'));
+        ]]]
   - icon: mdi:pencil
     tap_action:
       action: open-edit-mode
@@ -212,9 +222,29 @@ For each route, a popup menu can be configured, to display a popup when clicked.
 
 > **Note**: `url` is required unless `tap_action` is present. If `tap_action` is defined, `url` is ignored.
 
+In addition to the default annotation, we also support using JSTemplate to define popup items.
+For example, you can dynamically define items based on the areas in your Home Assistant environment:
+
+```yaml
+- icon: mdi:sofa-outline
+  icon_selected: mdi:sofa
+  label: Rooms
+  tap_action: { action: open-popup }
+  popup: |
+    [[[
+      return Object.values(hass.areas).map(area => ({
+        label: area.name,
+        url: "/d-bubble/home#" + area.area_id,
+        icon: area.icon
+      }));
+    ]]]
+```
+
 #### JSTemplate
 
 You can easily customize some properties of the navbar-card by writing your own JavaScript rules. To do this, you simply wrap the value of the field that supports JSTemplates in `[[[` and `]]]`, then write the JavaScript code that determines the property's value.
+
+> **Note**: `[[[` and `]]]` are only needed in the YAML editor. For the visual editor, simply write plain javascript in the code block without the template wrappers.
 
 Apart from using plain javascript, you can access some predefined variables:
 
@@ -222,8 +252,6 @@ Apart from using plain javascript, you can access some predefined variables:
 - `user` -> Information about the current logged user.
 - `navbar` -> Internal state of the navbar-card. Accessible fields are:
   - `isDesktop` -> Boolean indicating whether the card is in its desktop variant or not.
-
-> **Tip**: You can use `console.log` in your JSTemplate to help debug your HomeAssistant states.
 
 Below is an example using JSTemplates for displaying a route only for one user, and a label indicating the number of lights currently on:
 
@@ -254,6 +282,8 @@ routes:
       [[[ return user.name != "jose"; ]]]
 ```
 
+> **Tip**: You can use `console.log` in your JSTemplate to help debug your HomeAssistant states.
+
 ---
 
 ### Desktop
@@ -262,13 +292,13 @@ Specific configuration for desktop mode.
 
 <img width="400" height="120" alt="navbar-card_desktop" src="https://github.com/user-attachments/assets/3f110a2d-3078-41ff-b357-459c69785fe8" />
 
-| Name          | Type                                     | Default  | Description                                                                |
-| ------------- | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| `show_labels` | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                          |
-| `show_popup_label_backgrounds` | boolean | `false`  | Whether or not to display label backgrounds for popup items                          |
-| `min_width`   | number                                   | `768`    | Screen size from which the navbar will be displayed as its desktop variant |
-| `position`    | `top` \| `bottom` \| `left` \| `right`   | `bottom` | Position of the navbar on desktop devices                                  |
-| `hidden`      | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on desktop devices                          |
+| Name                           | Type                                     | Default  | Description                                                                |
+| ------------------------------ | ---------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `show_labels`                  | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                          |
+| `show_popup_label_backgrounds` | boolean                                  | `false`  | Whether or not to display label backgrounds for popup items                |
+| `min_width`                    | number                                   | `768`    | Screen size from which the navbar will be displayed as its desktop variant |
+| `position`                     | `top` \| `bottom` \| `left` \| `right`   | `bottom` | Position of the navbar on desktop devices                                  |
+| `hidden`                       | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on desktop devices                          |
 
 <img width="200" alt="Popup labels turned off for desktop" src="https://github.com/user-attachments/assets/33516186-be1e-48de-9f25-808851f302b6" />
 <img width="200" alt="Popup labels turned on for desktop" src="https://github.com/user-attachments/assets/d8453509-9c67-4e5d-949f-2848630346d6" />
@@ -281,12 +311,12 @@ Specific configuration for mobile mode.
 
 <img width="785" height="108" alt="navbar-card_mobile" src="https://github.com/user-attachments/assets/b8134d65-d237-412a-9c0b-dfc9c009de46" />
 
-| Name          | Type                                     | Default  | Description                                                                                                             |
-| ------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `show_labels` | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                                                                       |
-| `show_popup_label_backgrounds` | boolean | `false`  | Whether or not to display label backgrounds for popup items                          |
-| `hidden`      | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on mobile devices                                                                        |
-| `mode`        | `docked` \| `floating`                   | `docked` | Choose visualization mode on mobile devices. `docked` for default experience, `floating` for desktop-like visualization |
+| Name                           | Type                                     | Default  | Description                                                                                                             |
+| ------------------------------ | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `show_labels`                  | boolean \| `popup_only` \| `routes_only` | `false`  | Whether or not to display labels under each route                                                                       |
+| `show_popup_label_backgrounds` | boolean                                  | `false`  | Whether or not to display label backgrounds for popup items                                                             |
+| `hidden`                       | boolean \| [JSTemplate](#jstemplate)     | `false`  | Set to true to hide the navbar on mobile devices                                                                        |
+| `mode`                         | `docked` \| `floating`                   | `docked` | Choose visualization mode on mobile devices. `docked` for default experience, `floating` for desktop-like visualization |
 
 <img width="200" alt="Popup labels turned off for mobile" src="https://github.com/user-attachments/assets/0547373e-283c-4233-b8d7-fd0928f0af4b" />
 <img width="200" alt="Popup labels turned on for mobile" src="https://github.com/user-attachments/assets/aaa6c424-1f44-46a5-9a20-2eb08d5d8eb4" />
@@ -315,18 +345,20 @@ When enabled, this configuration displays a `media_player` widget above the `nav
 
 <img width="445" height="166" alt="navbar-card_media-player" src="https://github.com/user-attachments/assets/b8898268-e232-4759-b35c-23a1afd43e7a" />
 
-| Option   | Type                                 | Default                                                  | Description                                                         |
-| -------- | ------------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
-| `entity` | string \| [JSTemplate](#jstemplate)  | -                                                        | Entity ID of the media_player                                       |
-| `show`   | boolean \| [JSTemplate](#jstemplate) | `true` when media_player is either `playing` or `paused` | Manually configure when the media player widget should be displayed |
+| Option                   | Type                                 | Default                                                  | Description                                                                                    |
+| ------------------------ | ------------------------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `entity`                 | string \| [JSTemplate](#jstemplate)  | -                                                        | Entity ID of the media_player                                                                  |
+| `show`                   | boolean \| [JSTemplate](#jstemplate) | `true` when media_player is either `playing` or `paused` | Manually configure when the media player widget should be displayed                            |
+| `album_cover_background` | boolean                              | `false`                                                  | Enable this option to display the album cover as blurred background of the media player widget |
 
 Example:
 
 ```yaml
 type: custom:navbar-card
-...
+  ...
 media_player:
   show: true
+  album_cover_background: true
   entity: |
     [[[
       const state = states['sensor.area_select'].state;

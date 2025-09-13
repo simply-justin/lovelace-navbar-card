@@ -14,6 +14,7 @@ import {
   DEFAULT_NAVBAR_CONFIG,
   DesktopPosition,
   NavbarCardConfig,
+  NavbarCustomActions,
   PopupItem,
   QuickbarActionConfig,
   RouteItem,
@@ -424,7 +425,7 @@ export class NavbarCard extends LitElement {
 
     // Cache label processing
     const label = this._shouldShowLabels(false)
-      ? (processTemplate<string>(this._hass, this, route.label) ?? ' ')
+      ? (processTemplate<string>(this._hass, this, route.label) ?? null)
       : null;
 
     return html`
@@ -543,7 +544,18 @@ export class NavbarCard extends LitElement {
    * Open the popup menu for a given popupConfig and anchor element.
    */
   private _openPopup = (route: RouteItem, target: HTMLElement) => {
-    const popupItems = route.popup ?? route.submenu;
+    const popupItems =
+      processTemplate<PopupItem[]>(this._hass, this, route.popup) ??
+      route.popup ??
+      route.submenu;
+
+    if (typeof popupItems === 'string') {
+      console.warn(
+        `[navbar-card] Invalid JSTemplate provided for route: ${route.label}`,
+      );
+      return;
+    }
+
     if (!popupItems || popupItems.length === 0) {
       console.warn(
         `[navbar-card] No popup items provided for route: ${route.label}`,
@@ -835,13 +847,13 @@ export class NavbarCard extends LitElement {
     forceResetRipple(target);
 
     // Close popup for any action unless it's opening a new popup
-    if (action?.action !== 'open-popup' && isPopupItem) {
+    if (action?.action !== NavbarCustomActions.openPopup && isPopupItem) {
       this._closePopup();
     }
 
     // Handle different action types
     switch (action?.action) {
-      case 'open-popup':
+      case NavbarCustomActions.openPopup:
         if (!isPopupItem) {
           const popupItems = route.popup ?? route.submenu;
           if (!popupItems) {
@@ -857,7 +869,7 @@ export class NavbarCard extends LitElement {
         }
         break;
 
-      case 'toggle-menu':
+      case NavbarCustomActions.toggleMenu:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
@@ -867,7 +879,7 @@ export class NavbarCard extends LitElement {
         });
         break;
 
-      case 'quickbar':
+      case NavbarCustomActions.quickbar:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
@@ -884,7 +896,7 @@ export class NavbarCard extends LitElement {
         );
         break;
 
-      case 'show-notifications':
+      case NavbarCustomActions.showNotifications:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
@@ -894,18 +906,25 @@ export class NavbarCard extends LitElement {
         });
         break;
 
-      case 'navigate-back':
+      case NavbarCustomActions.navigateBack:
         if (this._shouldTriggerHaptic(actionType, true)) {
           hapticFeedback();
         }
         window.history.back();
         break;
 
-      case 'open-edit-mode':
+      case NavbarCustomActions.openEditMode:
         if (this._shouldTriggerHaptic(actionType)) {
           hapticFeedback();
         }
         forceOpenEditMode();
+        break;
+
+      case NavbarCustomActions.customJSAction:
+        if (this._shouldTriggerHaptic(actionType)) {
+          hapticFeedback();
+        }
+        processTemplate<string>(this._hass, this, action.code);
         break;
 
       default:
@@ -1094,8 +1113,11 @@ export class NavbarCard extends LitElement {
       <ha-card class="media-player" @click=${this._handleMediaPlayerClick}>
         <div
           class="media-player-bg"
-          style="background-image: url(${mediaPlayerState.attributes
-            .entity_picture});"></div>
+          style=${this._config?.media_player?.album_cover_background
+            ? `background-image: url(${
+                mediaPlayerState.attributes.entity_picture
+              });`
+            : ''}></div>
         ${progress != null
           ? html` <div class="media-player-progress-bar">
               <div
@@ -1189,6 +1211,11 @@ export class NavbarCard extends LitElement {
       </div>
       ${this._popup}
     `;
+  }
+
+  static async getConfigElement() {
+    await import('./navbar-card-editor');
+    return document.createElement('navbar-card-editor');
   }
 }
 
