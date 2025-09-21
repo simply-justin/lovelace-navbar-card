@@ -1,7 +1,12 @@
-import { GestureAction, IAction } from "@/actions";
+import { NavbarContextDef } from '@/navbar-card';
+import { ActionHandler, ActionLogout, GestureAction } from '@/actions';
 
-export class Logout implements IAction {
-    run(target: HTMLElement, gesture: GestureAction, card: any): void {
-        throw new Error("Method not implemented.");
-    }
+export class Logout implements ActionHandler<ActionLogout> {
+  run(
+    context: NavbarContextDef,
+    target: HTMLElement,
+    gesture: GestureAction,
+  ): void {
+    context.card.hass.auth.revoke();
+  }
 }

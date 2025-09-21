@@ -1,8 +1,11 @@
 import { Constructor } from '@/mixins';
 import { processTemplate } from '@/utils';
+import { HasContext, NavbarContextDef } from '@/navbar-card.types';
 
 export function Routable<TBase extends Constructor>(Base: TBase) {
-  return class Routable extends Base {
+  return class Routable extends Base implements HasContext {
+    context!: NavbarContextDef;
+
     get url() {}
 
     get icon() {

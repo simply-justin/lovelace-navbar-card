@@ -1,26 +1,13 @@
 import { version } from '../package.json';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators';
-import { createContext, provide } from '@lit/context';
+import { provide } from '@lit/context';
 import { HomeAssistant } from 'custom-card-helpers';
 import { MediaPlayer } from '@/components/media-player';
 import { IsRoutable } from '@/mixins';
 import { getNavbarTemplates } from '@/utils';
 import { NavbarCardConfig } from '@/types';
-
-export interface NavbarContextDef {
-  hass: HomeAssistant;
-  config?: NavbarCardConfig;
-
-  isDesktopView: boolean;
-  modes: {
-    isEditingDashboard?: boolean;
-    isEditingCard?: boolean;
-    isPreviewing?: boolean;
-  };
-}
-
-export const navbarContext = createContext<NavbarContextDef>('ha-navbar');
+import { navbarContext, NavbarContextDef } from './navbar-card.types';
 
 // Register in HA card list
 window.customCards = window.customCards || [];
@@ -102,6 +89,8 @@ export class NavbarCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('resize', this._updateDesktopFlag);
+
+    this.context.card = this;
 
     this._updateEditModes();
     this._updateDesktopFlag();

@@ -1,7 +1,17 @@
-import { GestureAction, IAction } from "@/actions";
+import { NavbarContextDef } from '@/navbar-card';
+import { GestureAction, ActionHandler, ActionExecuteJS } from '@/actions';
+import { processTemplate } from '@/utils';
 
-export class CustomJS implements IAction {
-    run(target: HTMLElement, gesture: GestureAction, card: any): void {
-        throw new Error("Method not implemented.");
-    }
+export class CustomJS implements ActionHandler<ActionExecuteJS> {
+  run(
+    context: NavbarContextDef,
+    target: HTMLElement,
+    gesture: GestureAction
+  ): void {
+    processTemplate<string>(
+      context.card.hass,
+      context.card,
+      (gesture as ActionExecuteJS).code,
+    );
+  }
 }

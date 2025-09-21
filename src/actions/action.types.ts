@@ -1,3 +1,4 @@
+import { NavbarContextDef } from "@/navbar-card";
 import { ActionConfig as HassActionConfig } from "custom-card-helpers";
 
 /** Gesture types (from user input) */
@@ -59,9 +60,8 @@ export type NavbarActionConfig =
 export type ExtendedActionConfig = HassActionConfig | NavbarActionConfig;
 
 type JSTemplate = string;
-type JSTemplatable<T> = JSTemplate | T;
 
 /** Every action handler must implement this */
-export interface ActionHandler {
-  run(target: HTMLElement, gesture: GestureAction, card: any): void;
+export interface ActionHandler<TAction extends ExtendedActionConfig = ExtendedActionConfig, TArgs extends any[] = []> {
+  run(context: NavbarContextDef, target: HTMLElement, gesture: GestureAction & { action: TAction }, ...args: TArgs): void;
 }

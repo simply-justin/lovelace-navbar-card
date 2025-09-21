@@ -1,7 +1,16 @@
-import { GestureAction, IAction } from "@/actions";
+import { NavbarContextDef } from '@/navbar-card';
+import { GestureAction, ActionHandler, ActionPopup } from '@/actions';
+import { IsRoutable } from '@/mixins';
 
-export class OpenPopup implements IAction {
-    run(target: HTMLElement, gesture: GestureAction, card: any): void {
-        throw new Error("Method not implemented.");
+export class OpenPopup implements ActionHandler<ActionPopup, [IsRoutable]> {
+  run(
+    context: NavbarContextDef,
+    target: HTMLElement,
+    gesture: GestureAction,
+    route: IsRoutable
+  ): void {
+    if ('popup' in route) {
+        route.popup.open(target);
     }
+  }
 }

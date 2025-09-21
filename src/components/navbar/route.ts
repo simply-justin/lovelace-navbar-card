@@ -1,8 +1,18 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { Routable, Actionable } from '@/mixins';
 import { processTemplate } from '@/utils';
+import { consume, ContextConsumer } from '@lit/context';
+import { HasContext, navbarContext, NavbarContextDef } from '@/navbar-card.types';
+import { property } from 'lit/decorators';
 
 export class Route extends Actionable(Routable(LitElement)) {
+   /**
+    * Provides the navigation bar context to child components.
+    */
+   @consume({ context: navbarContext, subscribe: true })
+   @property({ attribute: false })
+   context!: NavbarContextDef;
+
   private _popupInstance?: Popup;
 
   constructor() {

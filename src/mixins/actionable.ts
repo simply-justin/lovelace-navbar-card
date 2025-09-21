@@ -1,6 +1,5 @@
 import {
   ActionHandler,
-  ActionQuickbar,
   CustomAction,
   CustomJS,
   GestureAction,
@@ -8,25 +7,28 @@ import {
   GestureHoldAction,
   GestureTapAction,
   GestureType,
+  HaAction,
   Logout,
   NavigateBack,
-  OpenEditMode,
+  EnterEditMode,
   OpenPopup,
   Quickbar,
   ShowNotifications,
   ToggleMenu,
 } from '@/actions';
-import { Constructor } from '@/mixins';
-import { Route } from 'old/components/navbar';
+import { Constructor, IsRoutable } from '@/mixins';
+import { forceResetRipple, hapticFeedback } from '@/utils';
+import { HasContext, NavbarContextDef } from '@/navbar-card.types';
 
 export const Actionable = <TBase extends Constructor>(Base: TBase) => {
-  return class Actionable extends Base {
-    private readonly actionRegistry: Map<CustomAction, ActionHandler> = new Map(
+  return class Actionable extends Base implements HasContext {
+    context!: NavbarContextDef;
+    readonly actionRegistry: Map<CustomAction, ActionHandler> = new Map(
       [
         [CustomAction.ExecuteCustomJS, new CustomJS()],
         [CustomAction.LogoutUser, new Logout()],
         [CustomAction.NavigateBack, new NavigateBack()],
-        [CustomAction.EnterEditMode, new OpenEditMode()],
+        [CustomAction.EnterEditMode, new EnterEditMode()],
         [CustomAction.OpenPopup, new OpenPopup()],
         [CustomAction.OpenQuickbar, new Quickbar()],
         [CustomAction.ShowNotifications, new ShowNotifications()],
@@ -49,34 +51,43 @@ export const Actionable = <TBase extends Constructor>(Base: TBase) => {
     public executeGestureAction(
       target: HTMLElement,
       gestureAction: GestureAction,
+      route: IsRoutable
     ) {
-      const { action } = gestureAction;
+      const { type, action } = gestureAction;
+
+      // Force reset ripple status to prevent UI bugs
+      forceResetRipple(target);
+
+      const triggerHaptic = (strong?: boolean) => {
+        if (this.#_isHapticEnabled(type, strong)) {
+          hapticFeedback();
+        }
+      };
 
       // Close popup if another action is triggered
-      if (action?.action !== CustomAction.OpenPopup && route instanceof Route) {
+      if (action !== CustomAction.OpenPopup && 'popup' in route) {
         route.popup.close();
       }
 
       // Resolve handler dynamically
       if (
         action &&
-        'action' in action &&
-        this.actionRegistry.has(action.action)
+        this.actionRegistry.has(action)
       ) {
-        const handler = this.actionRegistry.get(action.action)!;
-        handler.run(target, gestureAction, this._navbarCard);
+        triggerHaptic();
+
+        const handler = this.actionRegistry.get(action)!;
+        handler.run(this.context, target, gestureAction);
         return;
       }
 
-      // fallback behavior if no handler is registered
+      triggerHaptic();
+      new HaAction(this.context, target, gestureAction);
     }
 
     /** Determines if haptics should be triggered */
-    private _isHapticEnabled(
-      gestureType: GestureType,
-      isNavigation = false,
-    ): boolean {
-      const hapticConfig = this._navbarCard.config?.haptic;
+    #_isHapticEnabled(gestureType: GestureType, isNavigation = false): boolean {
+      const hapticConfig = this.context.config?.haptic;
 
       if (typeof hapticConfig === 'boolean') return hapticConfig;
       if (!hapticConfig) return !isNavigation;
@@ -92,19 +103,6 @@ export const Actionable = <TBase extends Constructor>(Base: TBase) => {
           return hapticConfig.double_tap_action ?? false;
         default:
           return false;
-      }
-    }
-
-    /** Map quickbar mode → shortcut key */
-    private _getQuickbarKey(action: ActionQuickbar): string {
-      switch (action.mode) {
-        case 'devices':
-          return 'd';
-        case 'entities':
-          return 'e';
-        case 'commands':
-        default:
-          return 'c';
       }
     }
   };
