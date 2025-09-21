@@ -1,5 +1,5 @@
+import { Route } from '@/components/navbar';
 import {
-  ActionHandler,
   CustomAction,
   CustomJS,
   GestureAction,
@@ -15,15 +15,19 @@ import {
   Quickbar,
   ShowNotifications,
   ToggleMenu,
+  ActionRegistryMap,
 } from '@/actions';
 import { Constructor, IsRoutable } from '@/mixins';
-import { forceResetRipple, hapticFeedback } from '@/utils';
+import { forceResetRipple, hapticFeedback, mapStringToEnum } from '@/utils';
 import { HasContext, NavbarContextDef } from '@/navbar-card.types';
 
 export const Actionable = <TBase extends Constructor>(Base: TBase) => {
   return class Actionable extends Base implements HasContext {
     context!: NavbarContextDef;
-    readonly actionRegistry: Map<CustomAction, ActionHandler> = new Map(
+    readonly actionRegistry: Map<
+      keyof ActionRegistryMap,
+      ActionRegistryMap[keyof ActionRegistryMap]
+    > = new Map(
       [
         [CustomAction.ExecuteCustomJS, new CustomJS()],
         [CustomAction.LogoutUser, new Logout()],
@@ -59,34 +63,34 @@ export const Actionable = <TBase extends Constructor>(Base: TBase) => {
       forceResetRipple(target);
 
       const triggerHaptic = (strong?: boolean) => {
-        if (this.#_isHapticEnabled(type, strong)) {
+        if (this.isHapticEnabled(type, strong)) {
           hapticFeedback();
         }
       };
 
       // Close popup if another action is triggered
-      if (action !== CustomAction.OpenPopup && 'popup' in route) {
-        route.popup.close();
+      if ((action as unknown as CustomAction) !== CustomAction.OpenPopup && 'popup' in route) {
+        (route as Route).popup.close();
       }
 
       // Resolve handler dynamically
       if (
         action &&
-        this.actionRegistry.has(action)
+        this.actionRegistry.has(action as unknown as keyof ActionRegistryMap)
       ) {
         triggerHaptic();
 
-        const handler = this.actionRegistry.get(action)!;
-        handler.run(this.context, target, gestureAction);
+        const handler = this.actionRegistry.get(action as unknown as keyof ActionRegistryMap)!;
+        handler.run(this.context, target, gestureAction, route);
         return;
       }
 
       triggerHaptic();
-      new HaAction(this.context, target, gestureAction);
+      (new HaAction).run(this.context, target, gestureAction);
     }
 
     /** Determines if haptics should be triggered */
-    #_isHapticEnabled(gestureType: GestureType, isNavigation = false): boolean {
+    isHapticEnabled(gestureType: GestureType, isNavigation = false): boolean {
       const hapticConfig = this.context.config?.haptic;
 
       if (typeof hapticConfig === 'boolean') return hapticConfig;

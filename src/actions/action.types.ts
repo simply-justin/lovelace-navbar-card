@@ -1,23 +1,8 @@
-import { NavbarContextDef } from "@/navbar-card";
+import { IsRoutable } from "@/mixins";
+import { NavbarContextDef } from "@/navbar-card.types";
 import { ActionConfig as HassActionConfig } from "custom-card-helpers";
 
-/** Gesture types (from user input) */
-export enum GestureType {
-  Tap = "tap",
-  Hold = "hold",
-  DoubleTap = "double-tap",
-}
-
-export type GestureTapAction = { type: GestureType.Tap } & ExtendedActionConfig;
-export type GestureHoldAction = { type: GestureType.Hold } & ExtendedActionConfig;
-export type GestureDoubleTapAction = { type: GestureType.DoubleTap } & ExtendedActionConfig;
-
-export type GestureAction =
-  | GestureTapAction
-  | GestureHoldAction
-  | GestureDoubleTapAction;
-
-/** Supported custom actions (navbar-card specific) */
+/* ------------------ Navbar Action Configs ------------------ */
 export enum CustomAction {
   OpenPopup = "open-popup",
   NavigateBack = "navigate-back",
@@ -59,9 +44,35 @@ export type NavbarActionConfig =
 /** Extended action config = Hass actions + navbar-card custom actions */
 export type ExtendedActionConfig = HassActionConfig | NavbarActionConfig;
 
-type JSTemplate = string;
+/* ------------------ Gestures ------------------ */
+export enum GestureType {
+  Tap = "tap",
+  Hold = "hold",
+  DoubleTap = "double-tap",
+}
 
-/** Every action handler must implement this */
-export interface ActionHandler<TAction extends ExtendedActionConfig = ExtendedActionConfig, TArgs extends any[] = []> {
-  run(context: NavbarContextDef, target: HTMLElement, gesture: GestureAction & { action: TAction }, ...args: TArgs): void;
+export type GestureTapAction = { type: GestureType.Tap };
+export type GestureHoldAction = { type: GestureType.Hold };
+export type GestureDoubleTapAction = { type: GestureType.DoubleTap };
+
+export type GestureAction<TConfig extends ExtendedActionConfig = ExtendedActionConfig> =
+  | (GestureTapAction & { action: TConfig })
+  | (GestureHoldAction & { action: TConfig })
+  | (GestureDoubleTapAction & { action: TConfig });
+
+/* ------------------ Registry Map ------------------ */
+export type ActionRegistryMap = {
+  [CustomAction.ExecuteCustomJS]: ActionHandler<ActionExecuteJS>;
+  [CustomAction.LogoutUser]: ActionHandler<ActionLogout>;
+  [CustomAction.NavigateBack]: ActionHandler<ActionNavigateBack>;
+  [CustomAction.EnterEditMode]: ActionHandler<ActionEnterEditMode>;
+  [CustomAction.OpenPopup]: ActionHandler<ActionPopup, [IsRoutable]>;
+  [CustomAction.OpenQuickbar]: ActionHandler<ActionQuickbar>;
+  [CustomAction.ShowNotifications]: ActionHandler<ActionShowNotifications>;
+  [CustomAction.ToggleMenu]: ActionHandler<ActionToggleMenu>;
+};
+
+/* ------------------ Action Handler ------------------ */
+export interface ActionHandler<TConfig extends ExtendedActionConfig = ExtendedActionConfig, TArgs extends unknown[] = []> {
+  run(context: NavbarContextDef, target: HTMLElement, gesture: GestureAction<TConfig>, ...args: TArgs): void;
 }

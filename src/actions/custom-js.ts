@@ -1,12 +1,12 @@
-import { NavbarContextDef } from '@/navbar-card';
 import { GestureAction, ActionHandler, ActionExecuteJS } from '@/actions';
 import { processTemplate } from '@/utils';
+import { NavbarContextDef } from '@/navbar-card.types';
 
 export class CustomJS implements ActionHandler<ActionExecuteJS> {
   run(
     context: NavbarContextDef,
     target: HTMLElement,
-    gesture: GestureAction
+    gesture: GestureAction,
   ): void {
     processTemplate<string>(
       context.card.hass,

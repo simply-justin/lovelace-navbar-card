@@ -1,5 +1,5 @@
-import { NavbarContextDef } from '@/navbar-card';
 import { ActionHandler, ActionLogout, GestureAction } from '@/actions';
+import { NavbarContextDef } from '@/navbar-card.types';
 
 export class Logout implements ActionHandler<ActionLogout> {
   run(

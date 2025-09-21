@@ -1,6 +1,6 @@
-import { NavbarContextDef } from '@/navbar-card';
 import { GestureAction, ActionHandler, ActionShowNotifications } from '@/actions';
 import { fireDOMEvent } from '@/utils';
+import { NavbarContextDef } from '@/navbar-card.types';
 
 export class ShowNotifications implements ActionHandler<ActionShowNotifications> {
   run(

@@ -1,7 +1,7 @@
 import { ActionConfig } from 'custom-card-helpers';
-import { NavbarContextDef } from '@/navbar-card';
 import { GestureAction, ActionHandler } from '@/actions';
 import { fireDOMEvent } from '@/utils';
+import { NavbarContextDef } from '@/navbar-card.types';
 
 export class HaAction implements ActionHandler<ActionConfig> {
   run(

@@ -1,5 +1,5 @@
-import { NavbarContextDef } from '@/navbar-card';
 import { GestureAction, ActionHandler, ActionNavigateBack } from '@/actions';
+import { NavbarContextDef } from '@/navbar-card.types';
 
 export class NavigateBack implements ActionHandler<ActionNavigateBack> {
   run(

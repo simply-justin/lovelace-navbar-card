@@ -1,6 +1,6 @@
-import { NavbarContextDef } from '@/navbar-card';
 import { GestureAction, ActionHandler, ActionToggleMenu } from '@/actions';
 import { fireDOMEvent } from '@/utils';
+import { NavbarContextDef } from '@/navbar-card.types';
 
 export class ToggleMenu implements ActionHandler<ActionToggleMenu> {
   run(
