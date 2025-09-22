@@ -37,9 +37,7 @@ Need help using `navbar-card`, have ideas, or found a bug? Here's how you can re
 
 * **🐛 Found a bug or have a feature request?**\
   [Open an issue on GitHub](https://github.com/joseluis9595/lovelace-navbar-card/issues) so we can track and fix it.
-* **❓Got questions?** \
-  Our [Help Centre](https://app.gitbook.com/o/En9VNp1q8x0kJFlSx9CC/s/RskRqxf8v417ivcPLWGD/) is the best place to start from setup guides to advanced usage tips, you’ll find everything you need.
-* **💬Do you want to share feedback, or just chat?**\
+* **❓Got questions, Do you want to share feedback, or just chat?**\
   Either start [a discussion on GitHub](https://github.com/joseluis9595/lovelace-navbar-card/discussions) or join the conversation on the [Home Assistant Community Forum ](https://community.home-assistant.io/t/navbar-card-easily-navigate-through-dashboards/832917).
 
 Your feedback helps make navbar-card better for everyone. Don’t hesitate to reach out!
