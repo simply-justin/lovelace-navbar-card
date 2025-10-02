@@ -633,7 +633,7 @@ your_theme:
       }
 ```
 
-#### For Home Assistant ≥ 2025.0
+#### For Home Assistant ≥ 2025.0 and < 2025.10
 
 ```yaml
 your_theme:
@@ -644,6 +644,22 @@ your_theme:
   card-mod-root-yaml: |
     .: |
       .toolbar > sl-tab-group {
+        pointer-events: none;
+        opacity: 0;
+      }
+```
+
+#### For Home Assistant ≥ 2025.10
+
+```yaml
+your_theme:
+  app-header-background-color: transparent
+  app-header-text-color: var(--primary-text-color)
+
+  card-mod-theme: your_theme
+  card-mod-root-yaml: |
+    .: |
+      .toolbar > ha-tab-group {
         pointer-events: none;
         opacity: 0;
       }
